@@ -1,0 +1,596 @@
+\documentclass[11pt]{article}
+
+% ---------------------------------------------------------------------------
+% Alpha-GPT: a ground-up, optimization-first formulation (internal note)
+% ---------------------------------------------------------------------------
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}[section]
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}[section]
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Uni}{\mathcal{U}}
+\newcommand{\Expr}{\mathcal{E}}
+\newcommand{\Term}{\mathcal{T}}
+\newcommand{\Op}{\mathcal{O}}
+\newcommand{\Sharpe}{\mathrm{SR}}
+\newcommand{\IC}{\mathrm{IC}}
+\newcommand{\ICIR}{\mathrm{ICIR}}
+\newcommand{\sgn}{\operatorname{sign}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\zscore}{\operatorname{z}}
+
+\title{\textbf{Alpha-GPT: Internal Research Note}}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Finding a portfolio of alpha expressions that ranks future cross-sectional returns is a search
+over an intractable, doubly-exponential space of programs against a black-box objective known
+only by backtesting. We replace brute-force enumeration with \emph{economic-reasoning-guided
+search}: a multi-agent LLM debate proposes economically motivated expressions (large, informed
+jumps through the space), genetic programming refines them locally, and the debate's cross-review
+plus a structural verifier prune weak candidates cheaply, so the expensive objective is queried
+only on promising ones. The method specializes the \emph{system}, not the model -- a general LLM
+already holds the asset-pricing reasoning we need, so we leave its weights untouched and wrap it
+in a task-specific harness whose only levers are a decomposition (reason about the economic
+mechanism, then commit to a formula) and test-time compute (the debate). We deliberately target
+one modular stage of the alpha pipeline -- the generator -- holding data, portfolio construction,
+and backtesting fixed: this attributes any measured edge to the alphas themselves and makes the
+generator a drop-in module for existing quant infrastructure. Whether this latent economic skill
+beats data-mining is the empirical question our random, single-shot, and genetic-programming
+baselines are built to test.
+\end{abstract}
+
+% ===========================================================================
+\section{Foundations: the objects we manipulate}
+\label{sec:foundations}
+% ===========================================================================
+
+% ---------------------------------------------------------------------------
+\subsection{Data: panels, universe, splits}
+\label{sec:data}
+% ---------------------------------------------------------------------------
+
+The market is represented as a library of \emph{panels}. A panel for data field $k$
+is a matrix
+\[
+X^{(k)} \in \R^{T \times N}, \qquad X^{(k)}_{t,i} = \text{value of field } k \text{ for stock } i \text{ on day } t,
+\]
+indexed by trading date $t$ (rows) and security identifier (PERMNO) $i$ (columns).
+All fields share one date-by-stock grid, so they can be combined cell-wise. Missing
+cells are \texttt{NaN} and every operator is NaN-safe.
+
+The investable set on day $t$ is the point-in-time universe $\Uni_t \subseteq \{1,\dots,N\}$
+(roughly 1{,}500 names per year, re-selected annually by trailing market
+capitalization; survivorship-free, so names enter and exit at delisting). A cell is
+valid only if $i \in \Uni_t$ and the stock actually traded that day.
+
+\paragraph{The prediction target.} For each stock and day we define the
+\emph{forward return}
+\[
+y_{t,i} \;=\; r_{t+1,i} \;=\; \frac{P_{t+1,i}}{P_{t,i}} - 1,
+\]
+the next-day total return (delisting returns embedded). Forward returns are masked to
+the universe and the last in-sample observation is blanked so no label leaks across a
+split boundary.
+
+\paragraph{Splits.} The calendar is partitioned once:
+\[
+\underbrace{2010\text{--}2017}_{\text{train}} \;\big|\;
+\underbrace{2018\text{--}2020}_{\text{validation}} \;\big|\;
+\underbrace{2021\text{--}2025}_{\text{test}}.
+\]
+\emph{Selection of everything} (which expressions, which combiner, which weights, which
+hyperparameters) happens on train/validation. The test split is touched exactly once,
+by the final portfolio backtest. This constraint reappears in Section~\ref{sec:opt} as
+an explicit feasibility condition on the optimizer.
+
+\paragraph{Data sources and what we can add.} Table~\ref{tab:data} lists the live
+sources and natural extensions. The key axes are \emph{source}, \emph{type},
+\emph{native frequency}, and the orthogonal information each adds.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}p{2.6cm}p{3.2cm}p{1.9cm}p{5.3cm}@{}}
+\toprule
+Source & Type & Frequency & Notes / fields \\
+\midrule
+CRSP (CIZ) & price / volume & daily & OHLC, returns (delisting-adjusted), volume, shares, market cap, bid/ask. The price--volume base. \\
+Compustat + WRDS ratios & fundamentals & quarterly & $\sim$17 characteristics (profitability, leverage, B/M, E/P, accruals, growth), point-in-time via earnings-announcement date \texttt{rdq}, forward-filled to daily. \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Natural extensions (orthogonal information families):}} \\
+OSAP (Chen--Zimmermann) & published anomaly signals & monthly & $\sim$200 firm-level signals; ingestion is implemented but not currently loaded into the live universe. \\
+\bottomrule
+\end{tabular}
+\caption{Data sources, types, native frequencies, and extensions. Lower-frequency
+sources are forward-filled onto the daily grid with a point-in-time release lag, so
+mixing frequencies never introduces look-ahead.}
+\label{tab:data}
+\end{table}
+
+% ---------------------------------------------------------------------------
+\subsection{An alpha expression}
+\label{sec:alpha-expr}
+% ---------------------------------------------------------------------------
+
+\begin{definition}[Alpha expression]
+An \emph{alpha expression} $e$ is a well-typed symbolic tree whose leaves are
+\emph{terminals} (data panels, drawn from a finite menu $\Term$) and whose internal
+nodes are \emph{operators} (drawn from a finite set $\Op$). Evaluating the tree
+produces a \emph{signal panel}
+\[
+\alpha \;=\; e(X) \in \R^{T\times N}, \qquad
+\alpha_t \;=\; \big(\alpha_{t,i}\big)_{i\in\Uni_t} \in \R^{N_t}
+\]
+where $\alpha_t$ is the day-$t$ cross-section of scores and $N_t = |\Uni_t|$.
+\end{definition}
+
+The operator set is small and fixed (the ``alpha language''):
+\begin{itemize}[leftmargin=1.4em,itemsep=1pt]
+  \item \textbf{Time-series} (per stock, along time; curried with fixed windows
+  $w\in\{5,10,20,60\}$): \texttt{ts\_mean}, \texttt{ts\_std}, \texttt{ts\_delta},
+  \texttt{ts\_rank}, \texttt{ts\_min}, \texttt{ts\_max}, \texttt{ts\_returns}, and the
+  binary \texttt{ts\_corr}.
+  \item \textbf{Cross-sectional} (per day, across stocks): \texttt{cs\_rank},
+  \texttt{cs\_zscore}.
+  \item \textbf{Element-wise}: \texttt{add}, \texttt{sub}, \texttt{mul},
+  \texttt{safe\_div}, \texttt{log\_abs}, \texttt{abs\_val}, \texttt{sign},
+  \texttt{neg}.
+\end{itemize}
+A concrete example, ``recent return scaled by volatility, ranked cross-sectionally,''
+is
+\[
+e \;=\; \texttt{cs\_rank}\big(\texttt{safe\_div}(\texttt{ts\_returns\_20}(\texttt{close}),\ \texttt{ts\_std\_20}(\texttt{returns}))\big).
+\]
+
+\paragraph{Why the space is intractable.} Let $b$ be the typical operator arity and
+$D$ the maximum tree depth. The number of admissible expressions grows roughly as
+\begin{equation}
+|\Expr| \;\sim\; \big(|\Term| + |\Op|\big)^{\,\Theta(b^{D})},
+\label{eq:explosion}
+\end{equation}
+doubly exponential in depth. The search is over \emph{programs} (terminals, operators,
+and nesting), not over feature pairs, so direct enumeration is infeasible and a guided
+search is required.
+
+\begin{remark}[Formula vs.\ code representation]
+The tree above fixes one \emph{level} of representation -- a composition of the bounded operator
+set $\Op$, i.e.\ a symbolic formula. A deeper alternative, central to concurrent work (CogAlpha;
+Liu et al., 2026), lets the generator emit general \emph{code} (intermediate variables, regime
+logic, transforms outside $\Op$), reaching the strictly larger
+$\Expr_{\text{code}}\supset\Expr_{\text{formula}}$ and matching what LLMs do well. We default to
+the DSL because it is fast, parseable, and open to the free genetic search of
+Section~\ref{sec:numerics}, whereas code needs sandboxing, timeouts, and a look-ahead test,
+evaluates more slowly, and forfeits free GP -- pushing toward far smaller candidate counts. Since
+only this backend changes, ``generate code'' also drops in as a third arm for an all-else-equal
+comparison the literature lacks.
+\end{remark}
+
+% ---------------------------------------------------------------------------
+\subsection{From a signal to cross-sectional bets}
+\label{sec:sorting}
+% ---------------------------------------------------------------------------
+
+A signal is used \emph{cross-sectionally}: each day we rank the stocks by $\alpha_t$
+and bet that high-score names outperform low-score names. Formally, on day $t$ assign
+each valid stock to one of $Q=5$ quantiles by the rank of its score,
+\[
+q_{t,i} \;=\; \Big\lceil Q \cdot \tfrac{\rank(\alpha_{t,i})}{N_t} \Big\rceil \in \{1,\dots,Q\},
+\]
+(ranking with tie-breaking so the bins never collapse). The long--short quintile
+portfolio is long the top bucket and short the bottom bucket, equal-weighted, and its
+realized next-day return is
+\begin{equation}
+R^{p}_{t}
+\;=\;
+\underbrace{\frac{1}{|L_t|}\sum_{i\in L_t} y_{t,i}}_{\text{long top quintile}}
+\;-\;
+\underbrace{\frac{1}{|S_t|}\sum_{i\in S_t} y_{t,i}}_{\text{short bottom quintile}},
+\qquad
+\begin{aligned}
+L_t &= \{i: q_{t,i}=Q\},\\
+S_t &= \{i: q_{t,i}=1\}.
+\end{aligned}
+\label{eq:lsret}
+\end{equation}
+Because positions are determined by \emph{rank}, only the cross-sectional ordering of
+$\alpha_t$ matters, not its scale; any monotone transform of a signal is the same bet.
+
+% ---------------------------------------------------------------------------
+\subsection{Measuring one signal: the information coefficient}
+\label{sec:ic}
+% ---------------------------------------------------------------------------
+
+The standard, scale-free measure of how well a signal ranks future returns is the
+\emph{information coefficient}: the daily Spearman rank correlation between the score
+and the forward return.
+
+\begin{definition}[IC, ICIR]
+For expression $e$ with signal $\alpha=e(X)$,
+\begin{equation}
+\IC_t(e) \;=\; \rho_{\text{Spearman}}\!\big(\alpha_t,\; y_t\big)
+\;=\; \rho_{\text{Pearson}}\!\big(\rank(\alpha_t),\, \rank(y_t)\big),
+\qquad
+\IC(e) \;=\; \frac{1}{T}\sum_{t=1}^{T}\IC_t(e),
+\label{eq:ic}
+\end{equation}
+and the information ratio of the signal is
+\begin{equation}
+\ICIR(e) \;=\; \frac{\overline{\IC_t}}{\,\mathrm{std}_t(\IC_t)\,},
+\qquad
+t\text{-stat} \;=\; \ICIR(e)\,\sqrt{T}.
+\label{eq:icir}
+\end{equation}
+\end{definition}
+
+$\IC$ measures average directional accuracy (a daily $\IC$ persistently above
+$\approx 0.02$ is economically meaningful); $\ICIR$ measures its stability /
+signal-to-noise. We also track \emph{turnover}, the mean day-over-day change in the
+cross-sectional percentile rank,
+\begin{equation}
+\tau(e) \;=\; \frac{1}{T}\sum_{t} \ \frac{1}{N_t}\sum_i \big| u_{t,i} - u_{t-1,i}\big|,
+\qquad u_{t,i} = \tfrac{\rank(\alpha_{t,i})}{N_t},
+\label{eq:turnover}
+\end{equation}
+a proxy for rebalancing cost.
+
+\begin{remark}[Why IC and not raw PnL for ranking candidates]
+$\IC$ in \eqref{eq:ic} is a rank statistic, so it is robust to outliers and immune to
+the monotone-transform ambiguity noted in Section~\ref{sec:sorting}. It is also cheap
+to compute in bulk, which matters because the search evaluates enormous numbers of
+candidates (Section~\ref{sec:numerics}).
+\end{remark}
+
+% ---------------------------------------------------------------------------
+\subsection{Combining many signals into a portfolio}
+\label{sec:combine}
+% ---------------------------------------------------------------------------
+
+A single alpha is weak; the edge comes from combining many weak,
+weakly-correlated signals into a portfolio (this is the \emph{breadth} that
+Section~\ref{sec:opt} shows matters most). Given a selected set $S=\{e_1,\dots,e_M\}$,
+each signal is first \emph{oriented} and \emph{standardized}:
+\begin{equation}
+s^{(j)}_t \;=\; \sgn\!\big(\IC^{\text{val}}(e_j)\big)\cdot \zscore\!\big(\alpha^{(j)}_t\big),
+\qquad
+\zscore(\alpha_t)_i = \frac{\alpha_{t,i}-\mathrm{mean}(\alpha_t)}{\mathrm{std}(\alpha_t)},
+\label{eq:orient}
+\end{equation}
+so every signal points the ``profitable'' way (sign chosen on validation, never test) and
+lives on a comparable scale. The composite is then a weighted blend
+$g_t = \sum_j w_j\, s^{(j)}_t$. Because portfolio construction is not the research question
+(Section~\ref{sec:opt} expands on this), we use the simplest robust weights: the default is
+\textbf{equal-weight} ($w_j = 1/M$), with \textbf{IC-weighting}
+($w_j \propto |\IC^{\text{val}}(e_j)|$) as a variant. Both use only validation-derived signs
+and weights, so no test information enters construction.
+
+% ---------------------------------------------------------------------------
+\subsection{The objective: out-of-sample Sharpe}
+\label{sec:sharpe}
+% ---------------------------------------------------------------------------
+
+Running the composite $g$ through the long--short map \eqref{eq:lsret} yields a daily
+portfolio return series $R^p_t$. The headline objective is its annualized Sharpe ratio
+on the test split:
+\begin{equation}
+\boxed{\ \Sharpe \;=\; \sqrt{252}\;\frac{\mathrm{mean}_t\, R^p_t}{\mathrm{std}_t\, R^p_t}\ }
+\label{eq:sharpe}
+\end{equation}
+We also report annualized return, maximum drawdown
+$\mathrm{MDD}=\min_t\big(C_t/\max_{s\le t}C_s - 1\big)$ with $C_t=\prod_{s\le t}(1+R^p_s)$,
+and the portfolio's own $\IC$/$\ICIR$/$\tau$. Equation~\eqref{eq:sharpe} is the scalar
+that Part~I maximizes.
+
+% ===========================================================================
+\section{Part I: the optimization problem}
+\label{sec:opt}
+% ===========================================================================
+
+The generator must choose a set $S\subseteq\Expr$ of expressions that, combined into a
+long--short portfolio, maximizes out-of-sample Sharpe. Everything downstream is fixed by scope:
+the combiner is not fitted, only picked from a small menu of robust weights on validation, so
+there is no inner portfolio problem and $S$ is the sole decision variable:
+\begin{equation}
+\boxed{\
+\max_{\,S \subseteq \Expr}\quad
+\E\!\big[\Sharpe_{\text{test}}\!\big(\text{portfolio}(S)\big)\big]
+\quad\text{s.t.}\quad
+\begin{cases}
+\text{every } e\in S \text{ is parseable and passes the verifier},\\
+S \text{ and the combiner are chosen on train/validation only.}
+\end{cases}
+\ }
+\label{eq:outer}
+\end{equation}
+The expectation matters because the optimizer never sees $\Sharpe_{\text{test}}$; it maximizes a
+validation surrogate, and test is read exactly once. That validation--test gap is the central
+statistical risk, reduced by the consistency filter (Section~\ref{sec:numerics}) and the debate's
+cross-review. The problem is hard for two reasons -- $\Expr$ is doubly exponential
+\eqref{eq:explosion} and each evaluation is an expensive backtest -- so we can neither enumerate
+nor differentiate, only \emph{search} (Part~II).
+
+\paragraph{What the objective rewards: skill and breadth.}
+For a dollar-neutral long--short book the portfolio return \emph{is} the active return, so its
+Sharpe equals the \emph{information ratio}, and Grinold's fundamental law factors that same number
+into the two levers a proposer controls:
+\begin{equation}
+\boxed{\ \Sharpe \;=\; \mathrm{IR} \;\approx\; \underbrace{\IC}_{\text{skill}}\;\cdot\;\sqrt{\,\underbrace{\mathrm{breadth}}_{\#\ \text{independent bets}}\,}\ }
+\label{eq:funlaw}
+\end{equation}
+Skill enters linearly but breadth only under a square root, so many diverse, modest-$\IC$ alphas
+beat a few strong ones. The search therefore maximizes the \emph{number of independent} skilled
+alphas rather than individual quality, and the combiner keeps $S$ large with no top-$k$ cap --
+provided the added alphas are genuinely independent, not restatements of the same bet.
+``Skill $\times$ breadth'' is also the axis along which the proposal mechanisms of Part~II differ
+(Section~\ref{sec:whydebate}).
+
+\begin{remark}[Combiner: equal weight, not fitted tangency]
+The Sharpe-maximizing weights for a fixed $S$ are the tangency portfolio
+$w^\star \propto \Sigma^{-1}\mu$. With many correlated, noisy alphas the sample $\Sigma^{-1}$ is
+ill-conditioned and $w^\star$ overfits; equal weight is its maximal-shrinkage limit, beats sample
+tangency out of sample, and keeps any measured edge attributable to the alphas rather than to
+combiner tuning.
+\end{remark}
+
+% ===========================================================================
+\section{Part II: how the search works}
+\label{sec:search}
+% ===========================================================================
+
+Since \eqref{eq:outer} can be neither enumerated nor differentiated, we search. The search is
+a generate-and-test loop built to spend cheap effort widely and the expensive true objective
+narrowly: two complementary moves generate candidates, and a cascade of increasingly expensive
+checks filters them, so the real backtest runs only on the few that survive.
+
+% ---------------------------------------------------------------------------
+\subsection{Propose globally, refine locally, prune cheaply}
+\label{sec:approx}
+% ---------------------------------------------------------------------------
+
+\begin{enumerate}[leftmargin=1.6em,itemsep=3pt]
+  \item \textbf{Propose (global moves).} The multi-agent debate takes an economically reasoned
+  hypothesis and writes \emph{complete} expressions for it. Because it draws on the model's
+  pretrained economic knowledge, it lands directly in plausible regions of $\Expr$ instead of
+  wandering in from random starts -- large, informed jumps.
+  \item \textbf{Refine (local moves).} Each proposal seeds genetic programming, which mutates
+  and recombines it (subtree crossover, point mutation) to hill-climb train $\IC$ in a small
+  neighborhood. One informed seed thus spawns many nearby variants at no extra model cost --
+  small, cheap steps.
+  \item \textbf{Prune (cheap first, expensive last).} Running the true backtest is the costly
+  step, so cheaper checks come first, in order: the debate's cross-review drops economically
+  weak ideas, the structural verifier discards anything that fails to parse, evaluate, or vary,
+  and a fast approximate $\IC$ ranks what remains. Only the top survivors reach the full
+  backtest.
+\end{enumerate}
+
+The division of labor is the point: the LLM makes the large, economically informed jumps a
+local search never could, and GP does the cheap refinement around them that the LLM would waste
+calls doing by hand. The proposer is \emph{fixed} -- it does not learn from which past alphas
+backtested well.
+
+% ---------------------------------------------------------------------------
+\subsection{Why multi-agent debate}
+\label{sec:whydebate}
+% ---------------------------------------------------------------------------
+
+\paragraph{Diversity, then critique.} Search quality is set by the \emph{best} candidate found
+under a fixed proposal budget. One model sampled many times tends to return the same few ideas
+reworded, so most of the budget re-draws a single mode; three persona-conditioned proposers
+(Momentum, MeanReversion, Fundamental) instead pull toward \emph{different} economic mechanisms,
+so the same budget covers more of $\Expr$ and lifts the expected best. Debate then adds what a
+plain sampler cannot: each agent critiques the others (cross-review), killing weak proposals
+before any of them costs a backtest. Debate thus buys both \emph{exploration} (diverse
+proposals) and \emph{verification} (critique).
+
+\paragraph{Why debate and not the other inference-time methods.}
+\begin{itemize}[leftmargin=1.4em,itemsep=2pt]
+  \item \textbf{Self-consistency / majority vote} collapses many reasoning chains onto one
+  consensus answer; we want the opposite -- a \emph{diverse set} of distinct alphas.
+  \item \textbf{Best-of-$N$} samples one model and keeps the top-scored; with no persona
+  diversity and no critique, its proposals cluster and it explores narrowly.
+  \item \textbf{MCTS / tree-of-thought} needs a cheap, accurate value estimate for partial
+  programs to steer the tree; here the only ground truth is the expensive backtest, so there is
+  nothing cheap to steer by.
+\end{itemize}
+
+\paragraph{The hypothesis: debate is the only mechanism with both skill and breadth.} The
+fundamental law \eqref{eq:funlaw} says a good proposer needs \emph{skill} (high per-alpha $\IC$)
+and \emph{breadth} (many independent alphas), and the skill that counts is \emph{out-of-sample}.
+This is exactly where an economic prior earns its keep: brute-force enumeration and genetic
+programming can push up \emph{in-sample} $\IC$, but with no economic reasoning to anchor them
+their best fits are usually overfit and fade out of sample. Table~\ref{tab:skillbreadth} lays out
+where we \emph{expect} each mechanism to land: the priorless methods fall short on genuine skill,
+breadth, or both, whereas debate is built for both -- genuine skill from economic priors plus
+cross-review, breadth from cheap, diverse proposals. These are predictions; the ablation grid of
+Section~\ref{sec:baselines} measures whether they hold.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}p{2.9cm}p{1.4cm}p{1.7cm}p{7.4cm}@{}}
+\toprule
+Mechanism & Skill & Breadth & Why we expect this \\
+\midrule
+Random trees        & none     & high     & unlimited cheap trees, but no economic prior -- the signals are meaningless \\
+Brute-force enum.\  & low      & very low & no economic prior, so its high in-sample $\IC$ is mostly overfit; also reaches only a shallow sliver of $\Expr$ \\
+Genetic programming & low      & low      & hill-climbs in-sample $\IC$ with no economic grounding, so its winners tend to overfit; explores only locally \\
+Single-shot LLM     & moderate & moderate & an economic prior gives a genuine but unrefined edge; one call clusters on a theme and gets no critique \\
+Multi-agent debate  & high     & high     & economic priors plus cross-review favor genuinely predictive alphas; diverse personas widen coverage \\
+\bottomrule
+\end{tabular}
+\caption{\emph{Hypothesized} skill and breadth by proposal mechanism -- predictions, not
+measurements. \emph{Skill} is genuine \emph{out-of-sample} per-alpha $\IC$: the priorless
+mechanical methods can fit the training data, but with no economic reasoning to lean on that fit
+tends to overfit rather than generalize. \emph{Breadth} is the number of independent alphas the
+mechanism can supply. Only debate is designed for both. Section~\ref{sec:baselines} tests these
+predictions.}
+\label{tab:skillbreadth}
+\end{table}
+
+% ---------------------------------------------------------------------------
+\subsection{Baselines and the ablation grid}
+\label{sec:baselines}
+% ---------------------------------------------------------------------------
+
+To test these predictions we run the debate against baselines that strip out the economic prior
+and the multi-agent structure, each through an \emph{identical} downstream pipeline (verify,
+evaluate, filter, combine, backtest; Part~III), so any difference traces to the proposal mechanism
+alone. Crossing the mechanism with a GP on/off toggle gives the grid in Table~\ref{tab:ablation}:
+reading down a column isolates the economic prior (random vs.\ single-shot LLM vs.\ debate),
+reading across a row isolates local GP amplification (off vs.\ on).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Proposal mechanism & GP off & GP on & LLM cost / round \\
+\midrule
+Random trees (noise floor)      & \texttt{random}        & \texttt{random-gp}        & free \\
+Single-shot LLM (one call)      & \texttt{single-agent}  & \texttt{single-agent-gp}  & $\sim$1 call \\
+Multi-agent debate (the method) & \texttt{debate-only}   & \texttt{full}             & $\sim$10--12 calls \\
+\bottomrule
+\end{tabular}
+\caption{Ablation grid: proposal mechanism $\times$ GP toggle (cell labels are the implemented
+run modes). The downstream verify / evaluate / filter / combine / backtest path is identical
+across all six cells, so differences come only from how candidates are proposed and amplified.}
+\label{tab:ablation}
+\end{table}
+
+The down-column contrast -- does an economic prior, and \emph{multi-agent} structure, beat the
+mechanical baselines? -- is the project's central hypothesis; the sharpest single test is
+\texttt{single-agent-gp} vs.\ \texttt{debate-only}, which at matched downstream effort separates
+structured multi-agent reasoning from merely spending more compute on one proposer.
+
+\begin{remark}[Debate $+$ GP]
+Adding GP on top of the debate pushes breadth further -- each economically-reasoned seed spawns
+many verified neighbors -- but GP's crossover and mutation are economically blind, so the
+variants can dilute the skill that made the seeds good. Debate $+$ GP thus trades a little
+per-alpha skill for breadth; whether that is net-positive is what the GP-on column of
+Table~\ref{tab:ablation} answers.
+\end{remark}
+
+% ===========================================================================
+\section{Part III: numerics and algorithms}
+\label{sec:numerics}
+% ===========================================================================
+
+The concepts of Part~II become three algorithms operating on two objects -- the \emph{context}
+$\mathcal{H}$ (the hypothesis under exploration plus the resolved terminal menu $\Term$) and the
+\emph{book} $\mathcal{P}$ (every expression found so far with its cached train/validation
+metrics) -- and four components: three \textbf{debate agents} (Momentum, MeanReversion,
+Fundamental), a \textbf{moderator} that synthesizes their proposals, a \textbf{GP operator} that
+mutates and recombines seeds, and a \textbf{verifier} that structurally filters candidates
+(parse, depth, eval, coverage, non-constant) to keep the book clean at scale.
+
+% ---------------------------------------------------------------------------
+\subsection{The multi-agent debate (the proposer)}
+% ---------------------------------------------------------------------------
+
+Each of the two stages is a draft / cross-review / revise loop over the three agents,
+closed by a moderator. Stage 1 produces hypotheses (no formulas yet); Stage 2 turns
+them into parseable expressions.
+
+\begin{algorithm}[h]
+\caption{Two-stage debate: idea $\to$ formula (one full proposal round)}
+\begin{algorithmic}[1]
+\Require trading idea / context $\mathcal{H}$, terminal menu $\Term$, agents $\{1,2,3\}$, moderator $\Phi$
+\Statex \textbf{Stage 1: idea debate}
+\State each agent $i$ \textbf{drafts} a structured hypothesis (mechanism, direction, proxies, filters, normalization)
+\State each agent \textbf{cross-reviews} the others on 8 dimensions (mechanism, clarity, payoff, direction, subfactor, filter, normalization, implementability), decision $\in$ \{accept, accept-with-revision, reject\}
+\State each agent \textbf{revises} its hypothesis given the reviews
+\State $\mathcal{H}^\star \gets \Phi(\text{revised hypotheses})$ \Comment{moderator synthesizes $\approx 3$ hypotheses}
+\Statex \textbf{Stage 2: formula debate}
+\State each agent \textbf{drafts} 1--2 expressions per hypothesis over $\Term$
+\State each agent \textbf{cross-reviews} on \{faithfulness, implementability, robustness, novelty, simplicity\}
+\State each agent \textbf{revises}; \textbf{parse-gate}: drop any expression that does not compile against $(\Term,\Op)$
+\State \Return seed pack $\gets \Phi(\text{parseable expressions})$ \Comment{moderator selects $\approx 8$ diverse seeds}
+\end{algorithmic}
+\end{algorithm}
+
+Cost is roughly 10--12 model calls per round (3 agents $\times$ 3 phases $\times$ 2
+stages plus 2 moderator calls). This is the expensive, high-quality proposal path; the
+factory can also use a single autonomous generator call when scale matters more than
+per-idea quality.
+
+% ---------------------------------------------------------------------------
+\subsection{The outer search loop (factory + GP amplification)}
+% ---------------------------------------------------------------------------
+
+\begin{algorithm}[h]
+\caption{Outer search: propose $\to$ amplify $\to$ verify $\to$ evaluate $\to$ store}
+\begin{algorithmic}[1]
+\Require number of rounds $N$, train/val splits, primitive set $\mathrm{pset}$
+\State $\mathcal{P}\gets\emptyset$ \Comment{the book / database, deduplicated on expression hash}
+\For{$n = 1,\dots,N$}
+  \State seeds $\gets \textsc{Propose}(\mathcal{H}_n)$ \Comment{Algorithm 1, or single-agent / random}
+  \State candidates $\gets$ seeds $\cup\ \textsc{GP-amplify}(\text{seeds})$ \Comment{local search around each seed}
+  \For{each $e$ in candidates}
+    \If{\textbf{not} \textsc{Verify}$(e)$} \textbf{continue} \Comment{parse, depth, eval, coverage, non-constant}
+    \EndIf
+    \State compute $\IC^{\text{train}}(e), \IC^{\text{val}}(e), \ICIR, \Sharpe^{\text{val}}, \tau$ \Comment{fast approximate metrics}
+    \State insert $e$ into $\mathcal{P}$
+  \EndFor
+\EndFor
+\State \Return $\mathcal{P}$
+\end{algorithmic}
+\end{algorithm}
+
+\textsc{GP-amplify} runs DEAP genetic programming seeded with the parsed proposals (subtree
+crossover, point mutation, depth limit 6; fitness $=$ mean train $\IC$ on a date-subsample for
+speed), so each informed seed spawns many verified neighbors with no extra model calls.
+
+% ---------------------------------------------------------------------------
+\subsection{Selection and the out-of-sample backtest}
+% ---------------------------------------------------------------------------
+
+\begin{algorithm}[h]
+\caption{From the book to one out-of-sample number}
+\begin{algorithmic}[1]
+\Require book $\mathcal{P}$, splits (val, test), combiners $\mathcal{C}$
+\State $S \gets \{e\in\mathcal{P} : \IC^{\text{train}}(e)\cdot \IC^{\text{val}}(e) > 0 \ \text{and}\ |\IC^{\text{val}}(e)| \ge \epsilon\}$ \Comment{consistency filter, no top-$k$ cap}
+\State orient + z-score each $e\in S$ on test via \eqref{eq:orient} \Comment{signs from validation}
+\For{each combiner $c\in\mathcal{C}$}
+  \State $g \gets$ combine$(S, c)$; \quad $R^p \gets$ long--short quintile of $g$ on test \Comment{\eqref{eq:lsret}}
+  \State record $\Sharpe, \IC, \ICIR, \tau, \mathrm{MDD}$ \Comment{\eqref{eq:sharpe}}
+\EndFor
+\State choose the headline combiner by \textbf{validation} Sharpe \Comment{not by max test Sharpe}
+\State \Return the test metrics of the chosen combiner
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Consistency filter, not top-$k$.} Selecting the highest-validation-$\IC$ alphas tends
+to pick the most overfit ones; instead we require the sign to agree across train and validation
+($\IC^{\text{train}}\!\cdot\IC^{\text{val}}>0$), which drops the lucky ones while keeping the set
+large. Even the combiner is chosen on validation, so no decision peeks at test.
+
+% ---------------------------------------------------------------------------
+\subsection{Evaluation speed and cost}
+% ---------------------------------------------------------------------------
+
+$\IC$ is always the exact per-day Spearman \eqref{eq:ic} -- one metric used both to rank
+candidates during the search and to report the final portfolio. Sharpe comes in two forms: a
+fast rank-weighted proxy for ranking candidates, and the exact quintile long--short backtest
+\eqref{eq:lsret} for the headline number, run only on the filtered survivors. Everything
+parallelizes; at roughly \$0.00008 per alpha, $10^3$ alphas cost about \$0.06 in $\approx$13
+minutes and scale to $10^6$, so wall-clock, not money, binds -- which is why cheap GP
+amplification per expensive proposal matters.
+
+\end{document}

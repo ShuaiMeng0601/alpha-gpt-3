@@ -1,0 +1,12 @@
+[tool.pytest.ini_options]
+# `pythonpath = ["."]` lets `pytest` resolve `import alpha_gpt` from anywhere
+# (so tests run with a bare `pytest`, not just `python -m pytest`).
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+# The numeric code intentionally hits handled edge cases (corrcoef of a constant
+# vector, divide-by-zero -> NaN). Silence that noise so test output stays readable.
+filterwarnings = [
+    "ignore::RuntimeWarning",
+    "ignore::FutureWarning",
+]

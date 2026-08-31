@@ -1,0 +1,69 @@
+# Data files (too large for git)
+data/*.csv
+data/*.parquet
+data/*.h5
+data/*.feather
+
+# Generated alpha databases (factory output)
+data/*.db
+*.sqlite
+
+# Claude Code local state
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+# Run outputs are scratch and regenerate for free -- EXCEPT the four runs below, which
+# cost real API money ($99 baseline + $9 probe) and are preserved so a collaborator never
+# has to re-spend to reproduce the analysis. Raw debate/ dirs are excluded in favour of the
+# committed debate.tar.gz (83 MB of JSON -> 20 MB compressed).
+outputs/*
+!outputs/run_20260722_095043/
+!outputs/run_20260722_110816/
+!outputs/combined_100_20260722_123326/
+!outputs/probe_subset_v1/
+outputs/*/debate/
+
+# Panels are rebuilt from WRDS by scripts/prepare_data.py. Excluded because they are 533 MB
+# (single files hit GitHub's 50 MB warning) and because CRSP/Compustat data is licensed --
+# each user pulls it under their own WRDS credentials.
+data/panels/
+
+# Third-party papers (63 MB of other authors' PDFs). Not our work to redistribute; the
+# reading list with links lives in papers/llm_alpha_mining_literature.md.
+papers/library/
+
+# Archived code (retired pipeline, gate, one-off scripts) — kept on disk, out of the tree
+archive/
+.coverage
+
+# LaTeX build junk
+texput.log
+*.aux
+*.out
+*.synctex.gz

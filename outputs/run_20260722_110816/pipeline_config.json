@@ -1,0 +1,22 @@
+{
+  "source": "debate",
+  "n_ideas": 276,
+  "alphas_per_idea": 5,
+  "seed": 1453285323,
+  "parallel": true,
+  "gen_workers": 32,
+  "eval_workers": 8,
+  "subsample": 3,
+  "min_ic": 0.0,
+  "min_icir": 0.0,
+  "min_sharpe": 0.0,
+  "max_turnover": null,
+  "min_tstat": 2.0,
+  "top_k": 0,
+  "methods": [
+    "equal"
+  ],
+  "model": "gpt-5.4-mini",
+  "max_cost": 63.0,
+  "started": "20260722_110850"
+}

@@ -1,0 +1,105 @@
+==============================================================================
+ ALPHA-GPT — TERMINAL (FEATURE) REFERENCE
+==============================================================================
+
+A "terminal" is one input FEATURE: a date x PERMNO panel of values stored as
+data/panels/<name>.parquet. Alpha expressions combine terminals with operators
+(ts_mean, cs_rank, sub, ...) to produce a signal. forward_returns is the LABEL
+(next-period return), not a terminal.
+
+Currently on disk: 55 panels  ->  54 candidate terminals (forward_returns excluded).
+Each run, terminal_selection keeps a stable core + the highest-|IC| extras up to
+config.max_terminals = 40 (scored on the TRAIN split only, no look-ahead). With
+only 54 candidates today, the 40-cap is barely binding (drops ~14).
+
+NOT terminals: forward_returns (label) | data/aux/sector.parquet (neutralization)
+             | data/universe/membership.parquet (point-in-time universe grid)
+
+
+------------------------------------------------------------------------------
+ 1) CRSP PRICE / VOLUME / LIQUIDITY        (13)   source: crsp_daily.csv
+------------------------------------------------------------------------------
+close          daily close price
+open           daily open price
+high           daily high price
+low            daily low price
+volume         daily share volume
+returns        daily return
+price          price level (close proxy)
+dollar_volume  price x volume (turnover in $)
+market_cap     market capitalization (price x shares out)
+shrout         shares outstanding
+bid            daily bid price
+ask            daily ask price
+num_trades     number of trades
+
+
+------------------------------------------------------------------------------
+ 2) WRDS FINANCIAL RATIOS                  (24)   source: compustat_ratios.csv
+------------------------------------------------------------------------------
+roe            return on equity
+roa            return on assets
+roce           return on capital employed
+bm             book-to-market
+npm            net profit margin
+gpm            gross profit margin
+gprof          gross profitability (gross profit / total assets)
+accrual        accruals / average assets
+capei          Shiller-style cyclically-adjusted P/E
+cash_ratio     cash / current liabilities
+curr_ratio     current ratio (current assets / current liabilities)
+quick_ratio    quick ratio (liquid assets / current liabilities)
+de_ratio       total debt / equity
+debt_at        total debt / total assets (leverage)
+divyield       dividend yield
+inv_turn       inventory turnover
+at_turn        asset turnover
+rect_turn      receivables turnover
+pe_exi         P/E, diluted, excluding extraordinary items
+pe_op_dil      P/E on diluted operating EPS
+pcf            price / cash flow
+ps             price / sales
+ptb            price / book
+opmbd          operating profit margin before depreciation
+
+
+------------------------------------------------------------------------------
+ 3) COMPUSTAT CHARACTERISTICS (cs_*)       (17)   source: compustat_fundamentals.csv
+------------------------------------------------------------------------------
+cs_accruals        accruals
+cs_asset_growth    YoY growth in total assets
+cs_bm              book-to-market
+cs_cash_at         cash / total assets
+cs_current_ratio   current ratio
+cs_debt_at         debt / total assets (leverage)
+cs_earnings_growth YoY earnings growth
+cs_ep              earnings / price
+cs_gp_at           gross profit / total assets (gross profitability)
+cs_gpmargin        gross profit margin
+cs_leverage        leverage
+cs_opmargin        operating margin
+cs_rd_sale         R&D / sales
+cs_roa             return on assets
+cs_roe             return on equity
+cs_sales_growth    YoY sales growth
+cs_sp              sales / price
+
+(Note: the cs_* set overlaps the WRDS ratios above — both cover value /
+profitability / accruals / investment. They are built independently from
+Compustat fundamentals vs. WRDS pre-computed ratios.)
+
+
+------------------------------------------------------------------------------
+ WHAT'S MISSING  (would come from OSAP — not yet ingested)
+------------------------------------------------------------------------------
+The current set is almost entirely FUNDAMENTAL/ACCOUNTING + raw price/volume.
+There are NO price-based/behavioral anomaly terminals: momentum, short-term
+reversal, idiosyncratic volatility, 52-week high, liquidity (Amihud), share
+issuance, analyst signals, seasonality. (e.g. the Momentum debate persona must
+build momentum from `close` via ts_returns, because no momentum feature exists.)
+
+Ingesting OSAP (openassetpricing.com -> scripts/ingest_osap.py) would add
+~100-200 osap_* terminals covering exactly those missing families and push the
+candidate pool from 54 to ~150-250.
+
+==============================================================================

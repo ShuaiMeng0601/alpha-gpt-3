@@ -1,0 +1,240 @@
+2026-08-02 23:22:01,176 INFO: Resolved 52/54 candidate terminals (screen=breadth_only)
+2026-08-02 23:23:02,655 WARNING: Failed to parse expression: 'add(add(cs_rank(accual), add(cs_rank(debt_at), neg(cs_rank(cs_current_ratio)))), add(neg(cs_rank(cs_earnings_growth)), neg(cs_rank(bm))))' -> Unable to evaluate terminal: accual.
+2026-08-02 23:23:02,656 WARNING: Failed to parse expression: 'add(add(neg(cs_rank(accual)), neg(cs_rank(debt_at))), add(cs_rank(cs_current_ratio), cs_rank(cs_earnings_growth)))' -> Unable to evaluate terminal: accual.
+2026-08-02 23:23:08,627 WARNING: Arity-incomplete expression rejected at parse: 'mul(cs_rank(add(add(cs_rank(debt_at), cs_rank(neg(cs_current_ratio))), add(cs_rank(accrual), cs_rank(neg(cs_earnings_growth)))), cs_rank(bm))), cs_rank(neg(ask)))'
+2026-08-02 23:23:11,153 WARNING: Arity-incomplete expression rejected at parse: 'mul(cs_rank(add(add(cs_rank(debt_at), cs_rank(neg(cs_current_ratio))), add(cs_rank(accrual), cs_rank(neg(cs_earnings_growth)))), cs_rank(bm))), cs_rank(neg(ask)))'
+2026-08-02 23:23:40,587 WARNING: Failed to parse expression: 'add(cs_rank(add(add(roa, gpm), neg(add(cs_accruals, debt_at)))), mul(cs_rank(dollar_volume), 0))' -> Unable to evaluate terminal: gpm.
+2026-08-02 23:23:40,588 WARNING: Failed to parse expression: 'add(add(cs_rank(roa), cs_rank(curr_ratio)), add(neg(cs_rank(cs_accruals)), neg(cs_rank(cs_debt_at))))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:23:40,588 WARNING: Failed to parse expression: 'add(add(cs_rank(roa), cs_rank(curr_ratio)), add(neg(cs_rank(cs_accruals)), neg(cs_rank(cs_debt_at))))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:23:40,588 WARNING: Failed to parse expression: 'add(add(cs_rank(roa), cs_rank(curr_ratio)), add(neg(cs_rank(cs_accruals)), neg(cs_rank(cs_debt_at))))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:23:40,588 WARNING: Failed to parse expression: 'add(add(cs_rank(roa), neg(cs_rank(cs_accruals))), add(neg(cs_rank(cs_debt_at)), cs_rank(cs_bm)))' -> Unable to evaluate terminal: cs_bm.
+2026-08-02 23:23:40,588 WARNING: Failed to parse expression: 'add(add(cs_rank(roa), neg(cs_rank(cs_accruals))), add(neg(cs_rank(cs_debt_at)), cs_rank(cs_gp_at)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:23:40,588 WARNING: Failed to parse expression: 'add(add(cs_rank(roa), cs_rank(cs_gp_at)), neg(add(cs_rank(cs_accruals), cs_rank(cs_debt_at))))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:23:51,877 WARNING: Failed to parse expression: 'add(add(add(cs_rank(gpm), cs_rank(at_turn)), neg(cs_rank(de_ratio))), mul(0.15, cs_rank(dollar_volume)))' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:23:52,395 WARNING: Failed to parse expression: 'add(add(cs_rank(accrual), add(cs_rank(debt_at), neg(cs_rank(curr_ratio)))), add(neg(cs_rank(roe)), neg(cs_rank(cs_asset_growth))))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:23:52,395 WARNING: Failed to parse expression: 'add(add(neg(cs_rank(accrual)), neg(cs_rank(debt_at))), add(cs_rank(curr_ratio), add(cs_rank(roe), neg(cs_rank(cs_asset_growth)))))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:23:52,395 WARNING: Failed to parse expression: 'add(add(cs_rank(debt_at), neg(cs_rank(curr_ratio))), add(cs_rank(accrual), cs_rank(bm)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:23:52,395 WARNING: Failed to parse expression: 'add(add(cs_rank(debt_at), neg(cs_rank(curr_ratio))), add(cs_rank(accrual), neg(cs_rank(roe))))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:23:52,395 WARNING: Failed to parse expression: 'sub(add(cs_rank(debt_at), cs_rank(accrual)), add(cs_rank(curr_ratio), cs_rank(bm)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:23:52,395 WARNING: Failed to parse expression: 'sub(add(cs_rank(debt_at), cs_rank(accrual)), add(cs_rank(curr_ratio), cs_rank(bm)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:23:53,599 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_gp_at)), sub(0, cs_rank(cs_accruals)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:23:53,599 WARNING: Failed to parse expression: 'add(add(mul(0.75, cs_rank(cs_roa)), mul(0.75, cs_rank(cs_gp_at))), sub(0, cs_rank(cs_accruals)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:23:53,599 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cash_ratio)), sub(0, cs_rank(cs_accruals)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:23:53,599 WARNING: Failed to parse expression: 'add(add(mul(0.8, cs_rank(cs_roa)), mul(0.8, cs_rank(cash_ratio))), sub(0, cs_rank(cs_accruals)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:23:53,599 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_gp_at)), sub(0, cs_rank(cs_accruals)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:23:53,600 WARNING: Failed to parse expression: 'add(add(mul(0.9, cs_rank(cs_roa)), mul(0.6, cs_rank(cs_gp_at))), sub(0, cs_rank(cs_accruals)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:23:53,600 WARNING: Failed to parse expression: 'add(add(add(cs_rank(roe), cs_rank(inventory_turnover)), neg(cs_rank(accrual))), mul(0.25, cs_rank(cs_asset_growth)))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:23:53,600 WARNING: Failed to parse expression: 'add(add(add(cs_rank(roe), cs_rank(inventory_turnover)), neg(cs_rank(accrual))), cs_rank(cash_ratio))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:23:53,600 WARNING: Failed to parse expression: 'add(add(add(cs_rank(roe), cs_rank(cash_ratio)), neg(cs_rank(accrual))), add(mul(0.5, cs_rank(inventory_turnover)), mul(0.25, cs_rank(cs_asset_growth))))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:23:53,600 WARNING: Failed to parse expression: 'add(add(add(cs_rank(roe), cs_rank(cash_ratio)), neg(cs_rank(accrual))), mul(0.5, cs_rank(inventory_turnover)))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:23:53,600 WARNING: Failed to parse expression: 'add(add(add(cs_rank(roe), cs_rank(cash_ratio)), neg(cs_rank(accrual))), cs_rank(inventory_turnover))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:23:56,946 WARNING: Failed to parse expression: 'add(add(add(cs_rank(roe), cs_rank(inventory_turnover)), neg(cs_rank(accrual))), mul(0.25, cs_rank(cs_asset_growth)))' -> Unable to evaluate terminal: inventory_turnover.
+2026-08-02 23:23:56,946 WARNING: Failed to parse expression: 'add(add(add(cs_rank(roe), cs_rank(inventory_turnover)), neg(cs_rank(accrual))), cs_rank(cash_ratio))' -> Unable to evaluate terminal: inventory_turnover.
+2026-08-02 23:23:56,946 WARNING: Failed to parse expression: 'add(add(add(cs_rank(roe), cs_rank(cash_ratio)), neg(cs_rank(accrual))), add(mul(0.5, cs_rank(inventory_turnover)), mul(0.25, cs_rank(cs_asset_growth))))' -> Unable to evaluate terminal: inventory_turnover.
+2026-08-02 23:23:56,946 WARNING: Failed to parse expression: 'add(add(add(cs_rank(roe), cs_rank(cash_ratio)), neg(cs_rank(accrual))), mul(0.5, cs_rank(inventory_turnover)))' -> Unable to evaluate terminal: inventory_turnover.
+2026-08-02 23:23:56,946 WARNING: Failed to parse expression: 'add(add(add(cs_rank(roe), cs_rank(cash_ratio)), neg(cs_rank(accrual))), cs_rank(inventory_turnover))' -> Unable to evaluate terminal: inventory_turnover.
+2026-08-02 23:23:57,552 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_gp_at), cs_rank(curr_ratio)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:23:57,552 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_gp_at), cs_rank(curr_ratio)), add(neg(cs_rank(debt_at)), cs_rank(cs_roa)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:23:57,552 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_gp_at), cs_rank(curr_ratio)), add(neg(cs_rank(debt_at)), cs_rank(cs_roa)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:23:57,552 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_gp_at), cs_rank(curr_ratio)), add(neg(cs_rank(debt_at)), cs_rank(cs_roa)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:06,853 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_gp_at)), sub(cs_rank(bm), cs_rank(cs_debt_at)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:06,854 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_roa), cs_rank(cs_gp_at)), cs_rank(cs_debt_at))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:06,854 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_gp_at)), sub(cs_rank(bm), cs_rank(cs_debt_at)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:06,854 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_gp_at)), sub(cs_rank(bm), cs_rank(cs_debt_at)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:06,854 WARNING: Failed to parse expression: 'add(cs_rank(dollar_volume), neg(cs_rank(abs_val(price))))' -> Unable to evaluate terminal: price.
+2026-08-02 23:24:06,854 WARNING: Failed to parse expression: 'sub(add(add(cs_rank(cs_roa), cs_rank(cs_gp_at)), cs_rank(bm)), cs_rank(cs_debt_at))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:06,854 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roe), cs_rank(bm)), neg(cs_rank(cs_debt_at)))' -> Unable to evaluate terminal: bm.
+2026-08-02 23:24:06,854 WARNING: Failed to parse expression: 'add(add(add(cs_rank(cs_roe), cs_rank(cs_roa)), cs_rank(bm)), neg(cs_rank(cs_debt_at)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:06,854 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roe), cs_rank(bm)), neg(cs_rank(cs_debt_at)))' -> Unable to evaluate terminal: bm.
+2026-08-02 23:24:06,854 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roe), cs_rank(cs_roa)), add(neg(cs_rank(cs_debt_at)), cs_rank(cs_bm)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:06,854 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roe), cs_rank(cs_roa)), add(neg(cs_rank(cs_debt_at)), cs_rank(cs_accruals)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:06,854 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roe), cs_rank(cs_roa)), add(neg(cs_rank(cs_debt_at)), cs_rank(cs_bm)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:07,796 WARNING: Failed to parse expression: 'add(add(cs_rank(roa), cs_rank(curr_ratio)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:07,797 WARNING: Failed to parse expression: 'add(add(cs_rank(roa), cs_rank(curr_ratio)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:07,797 WARNING: Failed to parse expression: 'add(cs_rank(roa), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:07,797 WARNING: Failed to parse expression: 'add(add(cs_rank(roa), neg(cs_rank(debt_at))), cs_rank(curr_ratio))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:07,797 WARNING: Failed to parse expression: 'add(add(add(cs_rank(roa), neg(cs_rank(debt_at))), cs_rank(curr_ratio)), neg(cs_rank(ptb)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:07,797 WARNING: Failed to parse expression: 'add(add(cs_rank(roa), neg(cs_rank(debt_at))), cs_rank(curr_ratio))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:07,797 WARNING: Failed to parse expression: 'add(add(cs_rank(roa), neg(cs_rank(debt_at))), cs_rank(curr_ratio))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:07,797 WARNING: Failed to parse expression: 'add(neg(cs_rank(debt_at)), add(cs_rank(roa), cs_rank(curr_ratio)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:07,797 WARNING: Failed to parse expression: 'add(neg(cs_rank(debt_at)), cs_rank(roa))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:07,797 WARNING: Failed to parse expression: 'add(add(neg(cs_rank(debt_at)), neg(cs_rank(capei))), cs_rank(roa))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:08,025 WARNING: Failed to parse expression: 'cs_rank(add(add(cs_current_ratio, cs_roe), cs_roa))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:08,025 WARNING: Failed to parse expression: 'cs_rank(add(add(cs_current_ratio, cs_roe), cs_roa))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:08,025 WARNING: Failed to parse expression: 'cs_rank(add(add(cs_current_ratio, cs_roe), cs_rank(cs_gpm)))' -> Unable to evaluate terminal: cs_gpm.
+2026-08-02 23:24:08,519 WARNING: Failed to parse expression: 'cs_rank(add(add(cs_current_ratio, cs_roe), cs_rank(cs_gpm)))' -> Unable to evaluate terminal: cs_gpm.
+2026-08-02 23:24:09,418 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_gp_at), cs_rank(cs_bm)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:09,418 WARNING: Failed to parse expression: 'sub(cs_rank(curr_ratio), cs_rank(debt_at))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,418 WARNING: Failed to parse expression: 'add(add(cs_rank(curr_ratio), cs_rank(cs_gp_at)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,418 WARNING: Failed to parse expression: 'add(add(cs_rank(curr_ratio), cs_rank(cs_gp_at)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,419 WARNING: Failed to parse expression: 'add(add(cs_rank(curr_ratio), cs_rank(gpm)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,420 WARNING: Failed to parse expression: 'add(cs_rank(market_cap), cs_rank(dollar_volume))' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:24:09,420 WARNING: Failed to parse expression: 'sub(cs_rank(curr_ratio), cs_rank(debt_at))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,420 WARNING: Failed to parse expression: 'sub(cs_rank(curr_ratio), cs_rank(debt_at))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,420 WARNING: Failed to parse expression: 'add(add(cs_rank(curr_ratio), cs_rank(gpm)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,421 WARNING: Failed to parse expression: 'add(cs_rank(market_cap), cs_rank(dollar_volume))' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:24:09,470 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_rd_sale), cs_rank(roe)), add(neg(cs_rank(cs_accruals)), cs_rank(curr_ratio)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,470 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_rd_sale), cs_rank(roe)), add(neg(cs_rank(cs_accruals)), cs_rank(curr_ratio)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,470 WARNING: Failed to parse expression: 'add(neg(cs_rank(cs_accruals)), add(cs_rank(roe), cs_rank(curr_ratio)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,471 WARNING: Failed to parse expression: 'add(neg(cs_rank(cs_accruals)), add(cs_rank(roe), cs_rank(curr_ratio)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,471 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_rd_sale), cs_rank(roe)), neg(add(cs_rank(cs_accrual), cs_rank(curr_ratio))))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:09,472 WARNING: Failed to parse expression: 'add(cs_rank(curr_ratio), neg(cs_rank(cs_accrual)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,472 WARNING: Failed to parse expression: 'add(add(neg(cs_rank(cs_accrual)), cs_rank(roe)), cs_rank(curr_ratio))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:09,472 WARNING: Failed to parse expression: 'neg(cs_rank(cs_accrual))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:09,472 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_rd_sale), cs_rank(roe)), add(cs_rank(curr_ratio), neg(cs_rank(cs_accrual))))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:09,472 WARNING: Failed to parse expression: 'add(add(cs_rank(curr_ratio), cs_rank(roe)), neg(cs_rank(cs_accrual)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:10,076 WARNING: Failed to parse expression: 'add(add(cs_rank(neg(accrual)), cs_rank(roa)), mul(0.5, cs_rank(curr_ratio)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:10,076 WARNING: Failed to parse expression: 'add(add(cs_rank(neg(accrual)), cs_rank(roa)), mul(0.25, cs_rank(curr_ratio)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:10,077 WARNING: Failed to parse expression: 'add(add(cs_rank(curr_ratio), cs_rank(roa)), cs_rank(neg(accrual)))' -> Unable to evaluate terminal: curr_ratio.
+2026-08-02 23:24:10,077 WARNING: Failed to parse expression: 'add(add(cs_rank(neg(accrual)), cs_rank(roa)), cs_rank(neg(cs_accruals)))' -> Unable to evaluate terminal: cs_accruals.
+2026-08-02 23:24:10,078 WARNING: Failed to parse expression: 'add(add(cs_rank(neg(accrual)), cs_rank(roa)), cs_rank(neg(ptb)))' -> Unable to evaluate terminal: ptb.
+2026-08-02 23:24:10,078 WARNING: Failed to parse expression: 'add(add(cs_rank(quick_ratio), cs_rank(roa)), add(cs_rank(neg(accrual)), cs_rank(neg(cs_accruals))))' -> Unable to evaluate terminal: cs_accruals.
+2026-08-02 23:24:11,097 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_bm)), add(neg(cs_rank(cs_accrual)), neg(cs_rank(debt_at))))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:11,097 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_bm)), neg(add(cs_rank(cs_accrual), cs_rank(debt_at))))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:11,098 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), neg(cs_rank(cs_accrual))), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:11,098 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_bm)), neg(cs_rank(cs_accrual)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:11,098 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_bm)), add(neg(cs_rank(cs_accrual)), neg(cs_rank(debt_at))))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:11,099 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_bm)), add(neg(cs_rank(cs_accrual)), neg(cs_rank(debt_at))))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:11,099 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_bm)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:15,014 WARNING: Failed to parse expression: 'sub(add(add(cs_rank(gpm), cs_rank(cs_current_ratio)), cs_rank(neg(debt_at))), add(cs_rank(cs_asset_growth), cs_rank(capei)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:15,015 WARNING: Failed to parse expression: 'sub(add(add(cs_rank(gpm), cs_rank(cs_current_ratio)), cs_rank(neg(debt_at))), add(cs_rank(cs_asset_growth), cs_rank(capei)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:15,015 WARNING: Failed to parse expression: 'sub(add(add(cs_rank(gpm), cs_rank(cs_current_ratio)), cs_rank(neg(debt_at))), cs_rank(cs_asset_growth))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:15,015 WARNING: Failed to parse expression: 'sub(add(add(cs_rank(gpm), cs_rank(cs_current_ratio)), cs_rank(neg(debt_at))), cs_rank(cs_asset_growth))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:15,016 WARNING: Failed to parse expression: 'sub(add(cs_rank(gpm), cs_rank(cs_roa)), cs_rank(cs_asset_growth))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:15,016 WARNING: Failed to parse expression: 'sub(add(cs_rank(gpm), cs_rank(cs_roa)), add(cs_rank(debt_at), cs_rank(cs_asset_growth)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:15,016 WARNING: Failed to parse expression: 'sub(add(cs_rank(gpm), cs_rank(cs_roa)), add(cs_rank(debt_at), cs_rank(cs_asset_growth)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:15,016 WARNING: Failed to parse expression: 'sub(add(cs_rank(at_turn), cs_rank(cs_roa)), add(cs_rank(debt_at), cs_rank(cs_asset_growth)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:15,016 WARNING: Failed to parse expression: 'sub(add(cs_rank(gpm), cs_rank(cs_roa)), add(cs_rank(debt_at), cs_rank(cs_asset_growth)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:24:15,016 WARNING: Failed to parse expression: 'add(add(cs_rank(gpm), cs_rank(roe)), neg(add(cs_rank(debt_at), cs_rank(cs_asset_growth))))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:24:15,016 WARNING: Failed to parse expression: 'mul(add(cs_rank(gpm), cs_rank(roe)), neg(add(cs_rank(debt_at), cs_rank(cs_asset_growth))))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:24:15,017 WARNING: Failed to parse expression: 'add(add(cs_rank(gpm), cs_rank(roe)), neg(add(cs_rank(debt_at), cs_rank(cs_accruals))))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:24:15,017 WARNING: Failed to parse expression: 'add(add(cs_rank(gpm), cs_rank(roe)), neg(mul(cs_rank(debt_at), cs_rank(cs_asset_growth))))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:24:15,017 WARNING: Failed to parse expression: 'add(add(cs_rank(gpm), cs_rank(at_turn)), neg(add(cs_rank(debt_at), cs_rank(cs_accruals))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:15,017 WARNING: Failed to parse expression: 'mul(add(cs_rank(gpm), cs_rank(at_turn)), neg(add(cs_rank(debt_at), cs_rank(cs_accruals))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:16,429 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_roa), cs_rank(neg(cs_accruals))), cs_rank(debt_at))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:16,429 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_roa), cs_rank(neg(cs_accruals))), add(cs_rank(debt_at), cs_rank(cs_asset_growth)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:16,430 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_roa), cs_rank(neg(cs_accruals))), cs_rank(debt_at))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:16,430 WARNING: Failed to parse expression: 'add(cs_rank(neg(cs_accruals)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:16,431 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_roa), cs_rank(neg(cs_accruals))), cs_rank(debt_at))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:16,431 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), neg(cs_rank(cs_accruals))), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:16,431 WARNING: Failed to parse expression: 'add(cs_rank(cs_roa), neg(add(cs_rank(cs_accruals), cs_rank(debt_at))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:16,431 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), neg(cs_rank(cs_accruals))), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:16,431 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), neg(cs_rank(cs_accruals))), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:16,432 WARNING: Failed to parse expression: 'add(neg(cs_rank(debt_at)), neg(cs_rank(cs_asset_growth)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:16,557 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_bm)), add(neg(cs_rank(cs_accrual)), neg(cs_rank(debt_at))))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:16,557 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_bm)), neg(add(cs_rank(cs_accrual), cs_rank(debt_at))))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:16,557 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), neg(cs_rank(cs_accrual))), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:16,558 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_bm)), neg(cs_rank(cs_accrual)))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:16,558 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_bm)), add(neg(cs_rank(cs_accrual)), neg(cs_rank(debt_at))))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:16,558 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_bm)), add(neg(cs_rank(cs_accrual)), neg(cs_rank(debt_at))))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:16,660 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_rd_sale), cs_rank(roe)), neg(add(cs_rank(cs_accrual), cs_rank(curr_ratio))))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:16,660 WARNING: Failed to parse expression: 'add(cs_rank(curr_ratio), neg(cs_rank(cs_accrual)))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:16,660 WARNING: Failed to parse expression: 'add(add(neg(cs_rank(cs_accrual)), cs_rank(roe)), cs_rank(curr_ratio))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:16,660 WARNING: Failed to parse expression: 'neg(cs_rank(cs_accrual))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:16,661 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_rd_sale), cs_rank(roe)), add(cs_rank(curr_ratio), neg(cs_rank(cs_accrual))))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:16,661 WARNING: Failed to parse expression: 'add(add(cs_rank(curr_ratio), cs_rank(roe)), neg(cs_rank(cs_accrual)))' -> Unable to evaluate terminal: cs_accrual.
+2026-08-02 23:24:18,303 WARNING: Failed to parse expression: 'add(add(cs_rank(bm), neg(cs_rank(debt_at))), cs_rank(cs_roa))' -> Unable to evaluate terminal: bm.
+2026-08-02 23:24:18,305 WARNING: Failed to parse expression: 'add(add(cs_rank(bm), neg(cs_rank(debt_at))), cs_rank(cs_roa))' -> Unable to evaluate terminal: bm.
+2026-08-02 23:24:18,306 WARNING: Failed to parse expression: 'add(add(cs_rank(bm), cs_rank(cs_roa)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: bm.
+2026-08-02 23:24:18,306 WARNING: Failed to parse expression: 'add(add(cs_rank(bm), cs_rank(cs_roa)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: bm.
+2026-08-02 23:24:18,307 WARNING: Failed to parse expression: 'add(add(cs_rank(bm), cs_rank(cs_roa)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: bm.
+2026-08-02 23:24:18,307 WARNING: Failed to parse expression: 'add(add(cs_rank(bm), cs_rank(cs_roa)), neg(cs_rank(debt_at)))' -> Unable to evaluate terminal: bm.
+2026-08-02 23:24:19,697 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roe), cs_rank(cs_cash_at)), add(neg(cs_rank(cs_accruals)), neg(cs_rank(debt_at))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:19,697 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roe), cs_rank(cs_cash_at)), add(neg(cs_rank(cs_accruals)), neg(cs_rank(debt_at))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:19,698 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roe), cs_rank(cs_cash_at)), neg(add(cs_rank(debt_at), cs_rank(cs_accruals))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:19,698 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roe), cs_rank(cs_cash_at)), neg(add(cs_rank(debt_at), cs_rank(cs_accruals))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:19,698 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roe), cs_rank(cs_cash_at)), neg(add(cs_rank(debt_at), cs_rank(cs_accruals))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:19,698 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roe), cs_rank(cs_cash_at)), neg(add(cs_rank(debt_at), cs_rank(cs_accruals))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:19,699 WARNING: Failed to parse expression: 'sub(add(add(cs_rank(cs_roe), cs_rank(cs_cash_at)), neg(cs_rank(cs_accruals))), cs_rank(debt_at))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:19,699 WARNING: Failed to parse expression: 'add(sub(cs_rank(cs_roe), cs_rank(debt_at)), sub(cs_rank(cs_cash_at), cs_rank(cs_accruals)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:19,699 WARNING: Failed to parse expression: 'add(sub(cs_rank(cs_roe), cs_rank(debt_at)), cs_rank(cs_cash_at))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:19,700 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_roe), cs_rank(cs_cash_at)), add(cs_rank(debt_at), cs_rank(cs_accruals)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:19,700 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_roe), cs_rank(cs_cash_at)), add(cs_rank(debt_at), cs_rank(cs_accruals)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:19,700 WARNING: Failed to parse expression: 'sub(cs_rank(volume), cs_rank(debt_at))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:22,097 WARNING: Failed to parse expression: 'sub(cs_rank(dollar_volume), cs_rank(market_cap))' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:24:22,097 WARNING: Failed to parse expression: 'add(add(cs_rank(quick_ratio), neg(cs_rank(cs_leverage))), cs_rank(roe))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:24:22,097 WARNING: Failed to parse expression: 'add(cs_rank(dollar_volume), cs_rank(price))' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:24:23,243 WARNING: Failed to parse expression: 'add(add(cs_zscore(roa), neg(cs_zscore(debt_at))), add(neg(cs_zscore(accrual)), mul(cs_rank(bm), neg(cs_rank(debt_at)))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:23,244 WARNING: Failed to parse expression: 'add(add(cs_zscore(roa), neg(cs_zscore(debt_at))), add(neg(cs_zscore(accrual)), mul(cs_rank(bm), neg(cs_rank(debt_at)))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:23,244 WARNING: Failed to parse expression: 'add(add(cs_zscore(roa), neg(cs_zscore(accrual))), add(neg(cs_zscore(debt_at)), add(mul(cs_rank(bm), neg(cs_rank(debt_at))), neg(cs_rank(ask)))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:23,244 WARNING: Failed to parse expression: 'neg(add(cs_rank(ask), cs_rank(debt_at)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:23,245 WARNING: Failed to parse expression: 'add(add(cs_zscore(roa), neg(cs_zscore(accrual))), add(neg(cs_zscore(debt_at)), mul(cs_rank(bm), neg(cs_rank(debt_at)))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:23,249 WARNING: Failed to parse expression: 'add(add(cs_zscore(roa), neg(cs_zscore(debt_at))), neg(cs_zscore(accrual)))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:23,250 WARNING: Failed to parse expression: 'add(add(cs_zscore(roa), neg(cs_zscore(accrual))), add(neg(cs_zscore(debt_at)), mul(cs_rank(cs_bm), cs_rank(add(neg(cs_zscore(debt_at)), neg(cs_zscore(accrual)))))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:23,251 WARNING: Failed to parse expression: 'add(add(cs_zscore(roa), neg(cs_zscore(accrual))), add(neg(cs_zscore(debt_at)), mul(cs_rank(cs_bm), cs_rank(neg(cs_zscore(debt_at))))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:23,252 WARNING: Failed to parse expression: 'add(add(cs_zscore(roa), neg(cs_zscore(debt_at))), add(neg(cs_zscore(accrual)), mul(cs_rank(cs_bm), cs_rank(neg(cs_rank(ask))))))' -> Unable to evaluate terminal: debt_at.
+2026-08-02 23:24:25,594 WARNING: Failed to parse expression: 'sub(cs_rank(cs_gp_at), add(cs_rank(cs_accruals), cs_rank(cs_asset_growth)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:25,595 WARNING: Failed to parse expression: 'sub(cs_rank(cs_gp_at), cs_rank(cs_accruals))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:25,597 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_gp_at), cs_rank(rect_turn)), cs_rank(cs_accruals))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:25,597 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_gp_at), cs_rank(rect_turn)), cs_rank(cs_accruals))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:25,598 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_sales_growth), cs_rank(cs_gp_at)), cs_rank(cs_accruals))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:25,599 WARNING: Failed to parse expression: 'sub(cs_rank(cs_sales_growth), add(cs_rank(cs_accruals), neg(cs_rank(cs_gp_at))))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:25,599 WARNING: Failed to parse expression: 'sub(add(cs_rank(gpm), cs_rank(roe)), add(cs_rank(cs_accruals), cs_rank(debt_at)))' -> Unable to evaluate terminal: gpm.
+2026-08-02 23:24:25,600 WARNING: Failed to parse expression: 'sub(add(cs_rank(gpm), cs_rank(roe)), cs_rank(cs_accruals))' -> Unable to evaluate terminal: gpm.
+2026-08-02 23:24:25,600 WARNING: Failed to parse expression: 'sub(add(cs_rank(gpm), cs_rank(roe)), add(cs_rank(cs_accruals), cs_rank(debt_at)))' -> Unable to evaluate terminal: gpm.
+2026-08-02 23:24:25,600 WARNING: Failed to parse expression: 'sub(cs_rank(gpm), add(cs_rank(cs_accruals), cs_rank(debt_at)))' -> Unable to evaluate terminal: gpm.
+2026-08-02 23:24:25,601 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_asset_growth), cs_rank(gpm)), add(cs_rank(cs_accruals), cs_rank(debt_at)))' -> Unable to evaluate terminal: cs_asset_growth.
+2026-08-02 23:24:25,602 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_asset_growth), cs_rank(gpm)), cs_rank(cs_accruals))' -> Unable to evaluate terminal: cs_asset_growth.
+2026-08-02 23:24:25,602 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_gp_at), cs_rank(cs_sales_growth)), add(cs_rank(cs_accruals), cs_rank(debt_at)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:25,603 WARNING: Failed to parse expression: 'add(sub(cs_rank(cs_gp_at), cs_rank(cs_accruals)), sub(cs_rank(cs_sales_growth), cs_rank(debt_at)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:25,603 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_gp_at), cs_rank(rect_turn)), add(cs_rank(cs_accruals), cs_rank(debt_at)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:25,603 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_gp_at), cs_rank(rect_turn)), cs_rank(add(cs_accruals, debt_at)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:25,604 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_sales_growth), cs_rank(cs_gp_at)), add(cs_rank(cs_accruals), cs_rank(debt_at)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:25,605 WARNING: Failed to parse expression: 'sub(add(add(cs_rank(cs_sales_growth), cs_rank(cs_gp_at)), cs_rank(rect_turn)), add(cs_rank(cs_accruals), cs_rank(debt_at)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:24:29,159 WARNING: Failed to parse expression: 'sub(add(cs_rank(roe), cs_rank(cash_ratio)), add(cs_rank(cs_accruals), cs_rank(cs_asset_growth)))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:24:29,162 WARNING: Failed to parse expression: 'sub(cs_rank(cash_ratio), cs_rank(market_cap))' -> Unable to evaluate terminal: market_cap.
+2026-08-02 23:24:29,162 WARNING: Failed to parse expression: 'sub(add(cs_rank(cash_ratio), cs_rank(roe)), cs_rank(cs_accruals))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:24:29,162 WARNING: Failed to parse expression: 'sub(cs_rank(dollar_volume), cs_rank(ask))' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:24:29,163 WARNING: Failed to parse expression: 'sub(add(cs_rank(roe), cs_rank(cash_ratio)), add(cs_rank(cs_accruals), cs_rank(cs_asset_growth)))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:24:29,163 WARNING: Failed to parse expression: 'sub(add(cs_rank(roe), cs_rank(cash_ratio)), cs_rank(cs_accruals))' -> Unable to evaluate terminal: roe.
+2026-08-02 23:24:29,163 WARNING: Failed to parse expression: 'add(add(cs_rank(opmbd), cs_rank(bm)), neg(add(cs_rank(cs_accruals), cs_rank(cs_asset_growth))))' -> Unable to evaluate terminal: bm.
+2026-08-02 23:24:29,164 WARNING: Failed to parse expression: 'add(add(cs_rank(bm), neg(cs_rank(cs_accruals))), cs_rank(opmbd))' -> Unable to evaluate terminal: bm.
+2026-08-02 23:24:29,164 WARNING: Failed to parse expression: 'add(cs_rank(dollar_volume), neg(cs_rank(shrout)))' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:24:29,164 WARNING: Failed to parse expression: 'add(add(cs_rank(bm), cs_rank(opmbd)), neg(add(cs_rank(cs_accruals), mul(cs_rank(cs_asset_growth), cs_rank(cs_accruals)))))' -> Unable to evaluate terminal: bm.
+2026-08-02 23:25:30,619 WARNING: Failed to parse expression: 'add(add(cs_rank(neg(cs_current_ratio)), cs_rank(neg(cs_gp_at))), cs_rank(neg(cs_accruals)))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:25:30,620 WARNING: Failed to parse expression: 'cs_rank(dollar_volume)' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:25:30,620 WARNING: Failed to parse expression: 'add(cs_rank(cs_roa), cs_rank(cs_bm))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:25:30,620 WARNING: Failed to parse expression: 'add(cs_rank(cs_roa), cs_rank(neg(cs_accruals)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:25:30,620 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_current_ratio), cs_rank(cs_bm)), cs_rank(cs_roa))' -> Unable to evaluate terminal: cs_bm.
+2026-08-02 23:25:30,620 WARNING: Failed to parse expression: 'cs_rank(dollar_volume)' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:25:38,396 WARNING: Failed to parse expression: 'add(mul(cs_rank(cs_asset_growth), cs_rank(cs_roa)), mul(cs_rank(cs_current_ratio), neg(cs_rank(ask))))' -> Unable to evaluate terminal: cs_asset_growth.
+2026-08-02 23:25:38,396 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_asset_growth)), add(cs_rank(cs_current_ratio), neg(cs_rank(ask))))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:25:45,208 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_ep), cs_rank(roce)), sub(cs_rank(roa), cs_rank(de_ratio)))' -> Unable to evaluate terminal: roa.
+2026-08-02 23:25:45,208 WARNING: Failed to parse expression: 'add(cs_rank(cs_ep), sub(cs_rank(roa), cs_rank(de_ratio)))' -> Unable to evaluate terminal: roa.
+2026-08-02 23:25:45,208 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_ep), cs_rank(roce)), sub(cs_rank(roa), cs_rank(de_ratio)))' -> Unable to evaluate terminal: roa.
+2026-08-02 23:25:45,208 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_ep), cs_rank(roce)), sub(cs_rank(roa), cs_rank(de_ratio)))' -> Unable to evaluate terminal: roa.
+2026-08-02 23:25:45,209 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_bm), cs_rank(cs_roa)), sub(cs_rank(cs_gp_at), cs_rank(cs_accruals)))' -> Unable to evaluate terminal: cs_bm.
+2026-08-02 23:25:45,209 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_bm), cs_rank(cs_roa)), sub(cs_rank(cs_gp_at), cs_rank(cs_accruals)))' -> Unable to evaluate terminal: cs_bm.
+2026-08-02 23:25:45,209 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_bm), cs_rank(cs_roa)), neg(cs_rank(cs_accruals)))' -> Unable to evaluate terminal: cs_bm.
+2026-08-02 23:25:45,209 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_bm), cs_rank(cs_roa)), sub(cs_rank(cs_earnings_growth), cs_rank(cs_accruals)))' -> Unable to evaluate terminal: cs_bm.
+2026-08-02 23:25:45,209 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_bm), cs_rank(cs_roa)), sub(cs_rank(cs_earnings_growth), cs_rank(cs_accruals)))' -> Unable to evaluate terminal: cs_bm.
+2026-08-02 23:25:45,209 WARNING: Failed to parse expression: 'add(sub(cs_rank(cs_bm), cs_rank(cs_accruals)), sub(cs_rank(cs_roa), cs_rank(cs_debt_at)))' -> Unable to evaluate terminal: cs_bm.
+2026-08-02 23:25:47,650 WARNING: Failed to parse expression: 'sub(add(add(cs_rank(bm), cs_rank(cs_roe)), cs_rank(roa)), cs_rank(debt_at))' -> Unable to evaluate terminal: roa.
+2026-08-02 23:25:47,651 WARNING: Failed to parse expression: 'sub(add(add(cs_rank(cs_roe), cs_rank(roa)), cs_rank(cs_bm)), cs_rank(debt_at))' -> Unable to evaluate terminal: roa.
+2026-08-02 23:25:47,651 WARNING: Failed to parse expression: 'sub(add(add(cs_rank(bm), cs_rank(cs_roe)), cs_rank(roa)), cs_rank(debt_at))' -> Unable to evaluate terminal: roa.
+2026-08-02 23:25:47,651 WARNING: Failed to parse expression: 'add(add(cs_rank(bm), cs_rank(cs_roe)), add(cs_rank(roa), neg(cs_rank(debt_at))))' -> Unable to evaluate terminal: roa.
+2026-08-02 23:25:47,651 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_asset_growth), cs_rank(cs_roe)), add(cs_rank(roa), neg(cs_rank(debt_at))))' -> Unable to evaluate terminal: cs_asset_growth.
+2026-08-02 23:25:47,651 WARNING: Failed to parse expression: 'add(cs_rank(cs_asset_growth), add(cs_rank(cs_roe), neg(cs_rank(debt_at))))' -> Unable to evaluate terminal: cs_asset_growth.
+2026-08-02 23:25:47,651 WARNING: Failed to parse expression: 'add(add(cs_rank(bm), cs_rank(cs_roe)), add(cs_rank(roa), neg(cs_rank(debt_at))))' -> Unable to evaluate terminal: roa.
+2026-08-02 23:25:52,351 WARNING: Failed to parse expression: 'add(add(add(cs_rank(cs_cash_at), cs_rank(roce)), neg(cs_rank(de_ratio))), neg(cs_rank(dollar_volume)))' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:25:52,352 WARNING: Failed to parse expression: 'add(add(add(cs_rank(cs_cash_at), cs_rank(roce)), neg(cs_rank(de_ratio))), neg(cs_rank(dollar_volume)))' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:25:52,352 WARNING: Failed to parse expression: 'add(add(add(cs_rank(cs_cash_at), cs_rank(roce)), neg(cs_rank(de_ratio))), neg(cs_rank(dollar_volume)))' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:25:52,352 WARNING: Failed to parse expression: 'add(neg(cs_rank(de_ratio)), neg(cs_rank(dollar_volume)))' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:25:52,352 WARNING: Failed to parse expression: 'add(add(add(cs_rank(cs_cash_at), cs_rank(roce)), neg(cs_rank(de_ratio))), neg(cs_rank(dollar_volume)))' -> Unable to evaluate terminal: dollar_volume.
+2026-08-02 23:26:01,260 WARNING: Failed to parse expression: 'add(add(cs_rank(neg(cs_accruals)), cs_rank(cs_cash_at)), add(cs_rank(cs_gp_at), cs_rank(neg(cs_debt_at))))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:26:01,261 WARNING: Failed to parse expression: 'add(add(cs_rank(neg(cs_accruals)), cs_rank(cs_cash_at)), add(cs_rank(cs_gp_at), cs_rank(neg(cs_debt_at))))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:26:01,261 WARNING: Failed to parse expression: 'add(add(cs_rank(neg(cs_accruals)), cs_rank(cs_cash_at)), add(cs_rank(cs_gp_at), cs_rank(neg(cs_debt_at))))' -> Unable to evaluate terminal: cs_gp_at.
+2026-08-02 23:26:01,261 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_cash_at), cs_rank(neg(cs_debt_at))), cs_rank(cs_gp_at))' -> Unable to evaluate terminal: cs_debt_at.
+2026-08-02 23:26:01,261 WARNING: Failed to parse expression: 'add(cs_rank(neg(cs_accruals)), cs_rank(cs_curr_ratio))' -> Unable to evaluate terminal: cs_curr_ratio.
+2026-08-02 23:26:01,261 WARNING: Failed to parse expression: 'sub(cs_rank(cs_curr_ratio), cs_rank(cs_accruals))' -> Unable to evaluate terminal: cs_curr_ratio.
+2026-08-02 23:26:01,261 WARNING: Failed to parse expression: 'add(add(cs_rank(neg(cs_accruals)), cs_rank(cs_curr_ratio)), add(cs_rank(cs_roa), cs_rank(neg(debt_at))))' -> Unable to evaluate terminal: cs_curr_ratio.
+2026-08-02 23:26:01,261 WARNING: Failed to parse expression: 'add(cs_rank(cs_roa), cs_rank(neg(debt_at)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:26:01,262 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_curr_ratio)), cs_rank(neg(cs_accruals)))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:26:01,262 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_roa), cs_rank(cs_curr_ratio)), cs_rank(cs_accruals))' -> Unable to evaluate terminal: cs_roa.
+2026-08-02 23:26:03,623 WARNING: Failed to parse expression: 'add(cs_rank(neg(cs_accruals)), cs_rank(cs_curr_ratio))' -> Unable to evaluate terminal: cs_curr_ratio.
+2026-08-02 23:26:03,624 WARNING: Failed to parse expression: 'sub(cs_rank(cs_curr_ratio), cs_rank(cs_accruals))' -> Unable to evaluate terminal: cs_curr_ratio.
+2026-08-02 23:26:03,624 WARNING: Failed to parse expression: 'add(add(cs_rank(neg(cs_accruals)), cs_rank(cs_curr_ratio)), add(cs_rank(cs_roa), cs_rank(neg(debt_at))))' -> Unable to evaluate terminal: cs_curr_ratio.
+2026-08-02 23:26:03,930 WARNING: Failed to parse expression: 'add(add(cs_rank(cs_roa), cs_rank(cs_curr_ratio)), cs_rank(neg(cs_accruals)))' -> Unable to evaluate terminal: cs_curr_ratio.
+2026-08-02 23:26:03,930 WARNING: Failed to parse expression: 'sub(add(cs_rank(cs_roa), cs_rank(cs_curr_ratio)), cs_rank(cs_accruals))' -> Unable to evaluate terminal: cs_curr_ratio.
+2026-08-02 23:26:08,914 INFO: generation: 38/40 ideas in 248s
+2026-08-02 23:28:07,965 INFO: Re-evaluated 99 survivor signals on the TEST split.

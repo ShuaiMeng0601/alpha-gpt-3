@@ -1,0 +1,387 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\file}[1]{\texttt{#1}}
+
+\title{\textbf{Alpha-GPT 3.0 --- Engineering Reference}\\[2pt]
+\large From raw market data to a backtested portfolio of machine-generated alphas}
+\author{Internal engineering notes}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\bigskip
+
+\section{What the system is}
+
+The system has two macro-phases.
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Dataset build} (offline, run occasionally). Turn raw
+  CRSP/Compustat/OSAP into a clean, point-in-time (PIT), survivorship-free panel
+  library --- one \code{date $\times$ PERMNO} float matrix per data field. These
+  fields are the \emph{terminals} of the alpha language.
+  \item \textbf{Alpha factory} (run repeatedly). Autonomously generate alpha
+  \emph{expressions}, verify them, evaluate them on train/validation, store them in
+  a database; then filter, combine many of them into a single portfolio signal, and
+  backtest that portfolio on a held-out test period.
+\end{enumerate}
+
+\begin{center}
+\fbox{\parbox{0.92\textwidth}{\footnotesize\ttfamily
+DATASET BUILD\\
+CRSP CIZ (26GB), Compustat (2.3GB), OSAP signals\\
+~~--> PIT survivorship-free universe (annual rebalance)\\
+~~--> price/vol panels + cs\_* fundamentals + osap\_* signals + sector aux\\
+~~--> coverage report + terminal discovery / IC-cap\\
+~~==> data/panels/*.parquet, data/universe/membership.parquet\\[4pt]
+ALPHA FACTORY (loop N)\\
+idea (LLM) --> formula(s) --> VERIFY --> EVALUATE(train+val) --> STORE(SQLite,dedup)\\
+~~optional: multi-agent Idea+Formula Debate; optional: GP amplification\\[4pt]
+PORTFOLIO (offline)\\
+filter survivors (val metrics) --> ECON GATE (scorecard $\geq$ 7/10) --> re-eval on TEST\\
+~~--> sign-flip+zscore --> combine (1/N | IC-weighted | orthogonalized) --> backtest on TEST
+}}
+\end{center}
+
+\paragraph{Golden rule (leakage).} Selection happens on \textbf{train/validation};
+the \textbf{test} split (2021--2023) is only ever touched by the final portfolio
+backtest.
+
+\section{Repository map by stage}
+
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Stage} & \textbf{Files} \\
+\midrule
+Dataset: universe & \file{scripts/prepare\_data.py}, \file{alpha\_gpt/data/universe.py} \\
+Dataset: fundamentals & \file{scripts/ingest\_fundamentals.py}, \file{alpha\_gpt/data/fundamentals.py} \\
+Dataset: OSAP & \file{scripts/ingest\_osap.py}, \file{alpha\_gpt/data/osap.py} \\
+Dataset: quality/aux & \file{alpha\_gpt/data/coverage.py}, \file{analysis/neutralize.py}, \file{scripts/verify\_data.py} \\
+Loading/splits & \file{alpha\_gpt/data/loader.py}, \file{alpha\_gpt/config.py} \\
+Alpha language & \file{operators/alpha\_ops.py}, \file{gp\_search/primitives.py}, \file{seed\_injector.py} \\
+Terminal selection & \file{gp\_search/terminal\_selection.py} \\
+Idea/formula debate & \file{alpha\_gpt/debate/\{prompts,agents,moderator,models\}.py} \\
+GP search & \file{alpha\_gpt/gp\_search/engine.py} \\
+Factory & \file{factory/\{generators,verifier,run,parallel,fast\_metrics,db\}.py}, \file{scripts/run\_factory.py} \\
+Portfolio & \file{portfolio/construct.py}, \file{scripts/build\_portfolio.py} \\
+Eval primitives & \file{analysis/metrics.py}, \file{backtest/backtester.py}, \file{analysis/visualize.py} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Stage 0 --- Dataset construction}
+
+\subsection{Sources}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{CRSP CIZ daily} (\file{data/crsp\_daily.csv}, $\sim$26\,GB, $\sim$50M
+  rows, 25{,}306 PERMNOs, 2000--2025): OHLC, returns (\code{DlyRet} already includes
+  delisting returns in CIZ), volume, shares, market cap, bid/ask, and
+  share-class / exchange / delisting metadata.
+  \item \textbf{Compustat} quarterly fundamentals ($\sim$700 line items keyed by
+  \code{gvkey}, with \code{rdq} earnings-announcement date) and the WRDS Financial
+  Ratios file (keyed by both \code{gvkey} and \code{permno}, with \code{public\_date}).
+  \item \textbf{OSAP} (Open Source Asset Pricing): $\sim$200 published firm-level
+  signals, monthly, keyed by \code{permno, yyyymm}.
+\end{itemize}
+
+\subsection{Point-in-time, survivorship-free universe}
+The original code chose a static 500-stock universe using \emph{full-sample} filters
+(look-ahead $+$ survivorship). Replaced with a \textbf{two-pass streaming build}:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Pass 1} streams CRSP in chunks, drops the $\sim$23\% header-duplicate
+  rows (\code{SecurityHdrFlg='Y'}), and reduces to a per-\code{(PERMNO,year)} summary
+  (mean market cap + eligibility). Eligibility $=$ US common stock on a major
+  exchange: \code{ShareType=NS}, \code{SecurityType=EQTY},
+  \code{IssuerType}$\in\{$CORP,REIT$\}$, \code{PrimaryExch}$\in\{$N,A,Q$\}$,
+  \code{USIncFlg=Y} ($\approx$ classic CRSP shrcd 10/11).
+  \item \textbf{Annual selection}: at each calendar year take the top-$N$
+  (default 1{,}500) eligible names by \emph{prior-year} mean market cap --- strictly
+  trailing, so no future information enters selection.
+  \item \textbf{Pass 2} streams CRSP again, keeps only member rows, dedups
+  \code{(PERMNO,date)}, pivots each field to a \code{date $\times$ PERMNO} panel.
+  \item \textbf{Membership mask} $=$ in-universe-that-year \emph{and} actually trading
+  (\code{close.notna()}); every panel is masked, and
+  \code{forward\_returns $=$ returns.shift($-1$)} is computed from the \emph{masked}
+  returns (self-consistent; no out-of-universe leak).
+\end{itemize}
+Result: \textbf{2{,}752 names} over 2010--2023 ($\approx$1{,}500/yr with turnover),
+with \textbf{2{,}183 mid-sample exits and 1{,}146 entries} --- genuinely
+survivorship-free. \file{scripts/verify\_data.py} asserts this (10 checks).
+
+\subsection{Derived panels}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Price/volume} (13 panels): \code{close, open, high, low, volume,
+  returns, price, shrout, market\_cap, bid, ask, num\_trades, dollar\_volume}.
+  \item \textbf{Compustat $\to$ \code{cs\_*}}: \code{gvkey}$\to$\code{permno} from the
+  ratios file (no CCM download); many-to-one resolved by date-overlap + in-universe +
+  largest-cap tie-break. PIT date $=$ \code{rdq} (else \code{datadate}$+90$d). Derives
+  $\sim$17 standard characteristics (gross profitability, ROA/ROE, margins, leverage,
+  B/M, E/P, S/P, asset growth, accruals, \ldots), ffilled to daily, masked.
+  \item \textbf{OSAP $\to$ \code{osap\_*}}: each monthly signal becomes a panel.
+  \emph{Critical PIT control:} a month-$M$ signal is stamped active on
+  \code{month\_end($M$)$+1$ day}, then ffilled to daily (a January signal only affects
+  February onward).
+  \item \textbf{Sector} (GICS) $\to$ \file{data/aux/sector.parquet} --- kept
+  \emph{out} of \file{data/panels/} so it is never a numeric terminal.
+\end{itemize}
+
+\subsection{Terminal discovery + IC cap}
+With $\sim$50--250 candidate panels, feeding all of them to the search explodes it.
+\code{discover\_terminals} lists candidates; \code{select\_terminals} keeps a stable
+core plus the highest-$|$IC$|$ extras up to \code{config.max\_terminals} (default 40),
+where IC is the fast vectorized rank-correlation on train. The full library stays on
+disk; each run uses the most predictive subset.
+
+\subsection{Anti-look-ahead controls (summary)}
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Risk} & \textbf{Control} \\
+\midrule
+Survivorship & trailing-only selection; names retained through delisting \\
+Universe selection look-ahead & prior-year cap; no full-sample filters \\
+Fundamentals timing & \code{rdq} / \code{public\_date} (already release-lagged) \\
+Monthly$\to$daily fills & OSAP shifted $+1$ month; mask after ffill \\
+Delisting returns & embedded in CIZ \code{DlyRet}; captured as prior-day forward \\
+Test leakage & selection on train/val only; test reserved for final backtest \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Stage 1 --- Idea generation}
+
+Three interchangeable strategies feed the same downstream pipeline.
+
+\paragraph{Autonomous LLM generator (factory default).} Each call samples a
+\emph{theme} (momentum, value, quality, accruals, low-vol, liquidity, size, growth,
+\ldots), asks the model to invent one original cross-sectional idea in that theme and
+emit $k$ formulas using \emph{only} the run's terminals, and parses strict JSON
+\code{\{idea, hypothesis, expressions[]\}}. Diversity from theme sampling +
+temperature 0.9. Token usage is recorded on every call (incl. parse failures).
+
+\paragraph{Multi-agent Idea Debate (optional, higher quality).} Three agents with
+distinct priors (Momentum, Mean-Reversion, Fundamental) run draft $\to$ cross-review
+(8 scored dimensions) $\to$ revision; a moderator synthesizes 2--3 hypothesis specs
+($\sim$10--12 LLM calls). Used by \code{main.py --mode debate-only|full}.
+
+\paragraph{Random generator (no API).} Samples valid random expression trees ---
+stress-tests the whole loop for \$0 and provides a noise baseline.
+
+\section{Stage 2 --- Formula generation \& the alpha language}
+
+\paragraph{The DSL.} An alpha is a symbolic expression over \emph{terminals} (data
+panels) and \emph{operators}: time-series (per stock, curried windows)
+\code{ts\_mean/std/delta/rank/min/max} ($w\in\{5,10,20,60\}$), \code{ts\_returns},
+\code{ts\_corr}; cross-sectional (per day) \code{cs\_rank}, \code{cs\_zscore};
+element-wise \code{add, sub, mul, safe\_div, log\_abs, abs\_val, sign, neg}. All
+operate on \code{date $\times$ PERMNO} frames and are NaN-safe.
+
+\paragraph{Parsing.} \code{normalize\_expression} maps LLM-style
+\code{ts\_delta(close,5)} to curried \code{ts\_delta\_5(close)} and aliases; the
+optional \textbf{Formula Debate} mirrors the idea debate at the formula level with a
+hard parse-gate.
+
+\section{Stage 3 --- Verification}
+
+\code{verify\_expression} (\file{factory/verifier.py}) is the gate that keeps the DB
+clean at scale: (1) parse; (2) structure ($\geq 1$ terminal, depth $\leq 8$);
+(3) safe eval on train; (4) output sanity --- reject \code{all\_nan}; require
+coverage $\geq 5\%$ and median breadth $\geq 20$; require cross-sectional variation on
+$\geq 30\%$ of days (a constant signal has undefined IC). Returns the evaluated signal
+so the evaluator does not recompute it.
+
+\section{Stage 4 --- Evaluation (train/val) \& metrics}
+
+\paragraph{Splits.} Train 2010--2017, validation 2018--2020, test 2021--2023.
+
+\paragraph{Definitions.} For a daily cross-section of alpha scores $\alpha_t$ and
+next-day returns $r_{t+1}$:
+\begin{align*}
+\mathrm{IC}_t &= \mathrm{Spearman}(\alpha_t, r_{t+1}), \qquad
+\overline{\mathrm{IC}} = \tfrac{1}{T}\textstyle\sum_t \mathrm{IC}_t,\\
+\mathrm{ICIR} &= \frac{\mathrm{mean}_t(\mathrm{IC}_t)}{\mathrm{std}_t(\mathrm{IC}_t)},
+\qquad t\text{-stat}(\overline{\mathrm{IC}}) = \mathrm{ICIR}\cdot\sqrt{T}.
+\end{align*}
+Turnover $=$ mean daily $|\Delta\,\text{cross-sectional rank}|$; coverage $=$ fraction
+of non-NaN cells. \textbf{Note:} \code{ICIR} as computed is \emph{daily}; it
+annualizes as $\mathrm{ICIR}_{\text{ann}} = \mathrm{ICIR}_{\text{daily}}\cdot\sqrt{252}$.
+
+\paragraph{Two evaluators (deliberately different speeds).}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Fast/vectorized} (\file{factory/fast\_metrics.py}) for \emph{selection}
+  during generation: IC via rank-then-Pearson over the whole panel at once (no
+  per-date Python loop); Sharpe on a rank-weighted dollar-neutral factor return
+  $w_t = \big(\mathrm{rank}(\alpha_t) - \overline{\mathrm{rank}}\big)\big/\sum_i|\cdot|$,
+  $\;\mathrm{ret}_t = \sum_i w_{it}\,r_{i,t+1}$. $\sim$50$\times$ faster; good enough to
+  \emph{rank} alphas.
+  \item \textbf{Exact} (\file{analysis/metrics.py}, \file{backtest/backtester.py}) for
+  the final portfolio: Spearman per day; quintile long-short backtest.
+\end{itemize}
+Stored per alpha: train/val IC, train/val ICIR, val Sharpe / annual return /
+max drawdown, turnover, coverage, depth, generation tokens. \textbf{Test metrics are
+not computed here.}
+
+\section{Stage 5 --- GP amplification (optional)}
+
+Seed a DEAP genetic-programming search with the LLM's parsed expressions and evolve
+them (tournament selection, subtree crossover, point mutation, depth-limited;
+fitness $=$ mean train IC). Each idea can spawn dozens--hundreds of verified
+candidates at \$0 marginal LLM cost --- the cheapest path to million-scale.
+
+\section{Stage 6 --- Storage}
+
+SQLite (\file{factory/db.py}), one row per alpha: \code{hash} (unique; dedup on
+normalized expression), \code{expression}, \code{idea}, \code{source}, the metrics,
+generation tokens, \code{status}. \textbf{Only expressions $+$ scalars are stored,
+never signals} (1M signals would be terabytes); signals are recomputed on demand for
+the filtered survivors. \code{query()} filters by $|$IC$|$, $|$ICIR$|$, $|$Sharpe$|$
+(a strongly negative-IC alpha is one sign-flip from a strong signal), turnover,
+coverage, and the \textbf{train$\wedge$val consistency gate} (\S\ref{sec:portfolio}).
+
+\section{Stage 7 --- Repeat $N$ times (loop \& parallelism)}
+
+\file{factory/parallel.py} has three phases: (1) \textbf{generation} ---
+thread-pool the LLM calls (I/O-bound, near-linear speedup); (2) \textbf{evaluation}
+--- thread-pool verify+eval. \emph{Threads, not processes}, because the panels are
+GBs (processes would copy them per worker and exhaust RAM); NumPy/SciPy release the
+GIL during heavy ops, and the vectorized metrics keep each task short.
+(3) \textbf{store} --- single-writer dedup + insert.
+
+\paragraph{Throughput / cost (DeepSeek-V3.2 @ OpenRouter, observed).}
+$\sim$218 tokens-in $+$ $\sim$70 tokens-out per alpha (5 alphas/idea amortizes the
+$\sim$800-token prompt) $\Rightarrow$ \textbf{$\sim$\$0.000076 / alpha}.
+1{,}000 alphas $\approx$ \textbf{\$0.06, $\sim$13 min}. Money scales trivially
+(1M $\approx$ \$75); \textbf{wall-clock is the real constraint} $\Rightarrow$ GP
+amplification and/or more eval workers.
+
+\section{Stage 8 --- Portfolio construction}
+\label{sec:portfolio}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Filter survivors.} Default/recommended: a \textbf{train$\wedge$val
+  consistency gate} (\code{train\_ic $\cdot$ val\_ic} $> 0$) $+$ a mild $|$val IC$|$
+  floor $+$ \textbf{no top-$k$ cap}. Empirically this beats ``top-$k$ by val IC''
+  by a wide margin (equal-weight OOS Sharpe $0.39 \to \sim 1.2$ on the first run)
+  because (a) breadth helps, $\mathrm{IR}\approx \mathrm{IC}\cdot\sqrt{\text{breadth}}$,
+  so do not cap; and (b) the highest-val-IC alphas are often the most \emph{overfit}
+  --- a stricter val-IC bar alone is the wrong lever; requiring the signal to hold on
+  \emph{both} splits removes the lucky ones.
+  \item \textbf{Re-evaluate} each survivor on the \textbf{test} panels $\to$ signal.
+  \item \textbf{Sign-flip} by $\mathrm{sign}(\text{val\_ic})$ and cross-sectionally
+  z-score each (comparable scale).
+  \item \textbf{Combine} into one composite, four methods:
+  \begin{itemize}
+    \item \emph{equal (1/N)}: NaN-aware mean of the z-scored signals.
+    \item \emph{ic\_weighted}: weighted mean, weights $\propto |$val IC$|$.
+    \item \emph{orthogonalized}: sequentially residualize each signal against the
+    running composite, $r_i = s_i - \beta\,\mathrm{comp}$,
+    $\beta = \langle s_i,\mathrm{comp}\rangle / \langle \mathrm{comp},\mathrm{comp}\rangle$,
+    then average residuals (removes redundancy among similar ideas).
+  \end{itemize}
+\end{enumerate}
+
+\section{Stage 9 --- Portfolio backtest \& metrics}
+
+The composite is backtested \emph{once} on test with the exact long-short quintile
+backtester: each day rank stocks, equal-weight long the top quintile and short the
+bottom, daily LS return, then annualized Sharpe
+$\mathrm{SR}=\sqrt{252}\,\mathbb{E}[r^{LS}]/\mathrm{std}(r^{LS})$, annual return, max
+drawdown, plus IC/ICIR/turnover. Baselines: the best single alpha and the
+value-weighted market. Outputs a comparison table (\code{.md} $+$ \code{.json}) and an
+equity-curve plot.
+
+\section{End-to-end runbook}
+\begin{verbatim}
+# Dataset (occasional)
+python scripts/prepare_data.py --universe-size 1500
+python scripts/ingest_fundamentals.py
+python scripts/ingest_osap.py            # after downloading data/osap_signals.csv
+python scripts/verify_data.py
+python -m alpha_gpt.data.coverage
+
+# Factory (repeatable)
+python scripts/run_factory.py --n 200 --alphas-per-idea 5 --source llm \
+       --parallel --gen-workers 8 --eval-workers 10 --db data/alphas.db
+
+# Portfolio (consistency gate + no cap are the defaults)
+python scripts/build_portfolio.py --db data/alphas.db --min-train-ic 0.005
+\end{verbatim}
+
+\section{Empirical result (first unpolished 1{,}000-alpha run)}
+
+Generation: 200 LLM calls $\to$ 194 ideas $\to$ 970 expressions; 811 stored, 6 dup,
+153 rejected by the verifier. 218k tokens, \textbf{\$0.062}, \textbf{13.2 min}. Per-alpha
+validation signal is weak (median $|$val IC$|$ 0.004); the single highest-val-IC alpha
+\emph{lost 16\% OOS}. Portfolio (consistency gate, 140 alphas), out-of-sample
+(test 2021--2023):
+
+\begin{center}\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+\textbf{Method} & \textbf{\#} & \textbf{IC} & \textbf{ICIR$_d$} & \textbf{Sharpe} & \textbf{Ann.Ret} & \textbf{MaxDD} \\
+\midrule
+best single   & 1   & $-0.002$ & $-0.01$ & $-0.69$ & $-10.6\%$ & $-36\%$ \\
+equal (1/N)   & 140 & $0.025$  & $0.16$  & $1.43$  & $26.3\%$  & $-14\%$ \\
+ic\_weighted  & 140 & $0.023$  & $0.15$  & $1.37$  & $24.7\%$  & $-16\%$ \\
+orthogonalized& 140 & $0.029$  & $0.16$  & $1.44$  & $33.9\%$  & $-22\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Like-for-like, the equal-weight portfolio has daily ICIR $0.106$
+($\Rightarrow$ annualized $\approx 1.7$), IC $t$-stat $\approx 4.3$, Sharpe $t$-stat
+$\approx 2.5$, positive in all three years.
+
+\paragraph{Takeaways.} (1) the single ``best'' alpha overfits val$\to$test;
+(2) combining weak, uncorrelated signals yields a real factor with a \emph{shallower}
+drawdown; (3) selection $>$ combiner, and cross-split consistency $>$ raw magnitude.
+
+\section{Reading the results --- is Sharpe 0.88--1.4 ``good''?}
+
+Reference points (annualized, \textbf{gross} unless noted): S\&P 500 long-only
+$\sim$0.4--0.6; a typical single published anomaly $\sim$0.3--0.6; a well-built
+multi-factor tangency portfolio $\sim$1.0--1.5; top quant funds $\sim$1--2
+\emph{net of costs}. So an OOS gross Sharpe in this range from a completely unpolished
+automated pipeline is \emph{encouraging} --- in the ``real signal, not noise'' range,
+beating the market with a smaller drawdown --- but it is \textbf{not} a validated edge,
+because:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Gross, not net.} Turnover $\approx 0.1$/day is high; realistic costs
+  could pull net Sharpe toward $\sim$0.5--0.9.
+  \item \textbf{Test-peeking.} Choosing the selection rule / construction method /
+  thresholds by their test score inflates the number; the consistency gate is
+  principled (validation-side), but specific values tuned on test are optimistic.
+  \item \textbf{One test window, one run} $\Rightarrow$ high variance.
+  \item No borrow/capacity/neutralization modeled.
+\end{itemize}
+The robust finding is the \emph{shape} (portfolio $\gg$ best single; consistency gate
+$\gg$ magnitude ranking; beats benchmark across regimes), which is exactly what sound
+alpha-combination looks like.
+
+\section{Limitations \& roadmap}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Net-of-cost backtest} (turnover $\times$ spread) --- the most important
+  missing piece for credibility.
+  \item \textbf{Validation rigor} --- walk-forward / multiple windows / multiple seeds;
+  deflated Sharpe \& multiple-testing control given many candidates.
+  \item \textbf{Neutralization} --- \file{analysis/neutralize.py} exists but is not yet
+  wired into eval/backtest.
+  \item \textbf{Incremental selection} --- score each new alpha by marginal
+  contribution to the existing portfolio.
+  \item \textbf{Scale} --- GP amplification $+$ more eval workers toward 1M; the cost is
+  wall-clock, not dollars.
+  \item \textbf{Richer data axes} --- IBES (analyst), OptionMetrics (IV), 13F, short
+  interest, each a new orthogonal terminal family.
+\end{itemize}
+
+\end{document}

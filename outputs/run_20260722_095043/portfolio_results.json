@@ -1,0 +1,37 @@
+{
+  "n_survivors": 667,
+  "n_signals": 667,
+  "filters": "min|t-stat|=2.0, min|IC|=0.0, cap=none",
+  "rows": [
+    {
+      "ic": -0.020955172198556304,
+      "icir": -0.13096827089910568,
+      "sharpe": -0.5241024691369605,
+      "annual_return": -0.09395237895255348,
+      "max_drawdown": -0.5029597340007178,
+      "turnover": 0.21691223244768298,
+      "method": "best_single_alpha",
+      "n_alphas": 1
+    },
+    {
+      "ic": 0.016803359520625265,
+      "icir": 0.14018707274225928,
+      "sharpe": 1.2039047695794693,
+      "annual_return": 0.16294284737159126,
+      "max_drawdown": -0.1462798559570418,
+      "turnover": 0.04142733308234208,
+      "method": "equal",
+      "n_alphas": 667
+    },
+    {
+      "ic": 0.008268292668555876,
+      "icir": 0.1251874664652704,
+      "sharpe": 1.2114111052572571,
+      "annual_return": 0.07609596020371634,
+      "max_drawdown": -0.06495002034736232,
+      "turnover": 0.15265902252560234,
+      "method": "equal_factor_neutral",
+      "n_alphas": 667
+    }
+  ]
+}

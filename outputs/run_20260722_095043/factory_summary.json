@@ -1,0 +1,16 @@
+{
+  "ideas": 180,
+  "batches": 179,
+  "evaluated": 1284,
+  "stored": 1037,
+  "dup": 247,
+  "rejects": {},
+  "llm_calls": 3614,
+  "prompt_tokens": 16202213,
+  "completion_tokens": 6002137,
+  "est_cost_usd": 39.1613,
+  "cost_per_stored_alpha_usd": 0.037764,
+  "gen_seconds": 1017,
+  "eval_seconds": 610,
+  "total_seconds": 1626
+}

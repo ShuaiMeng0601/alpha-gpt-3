@@ -1,0 +1,29 @@
+# Data processing
+pandas
+numpy
+pyarrow          # parquet engine for pandas read_parquet / to_parquet
+
+# Genetic programming
+deap
+
+# Numerics (Spearman IC, etc.)
+scipy
+
+# LLM client (OpenRouter is OpenAI-compatible)
+openai
+
+# Visualization
+matplotlib
+seaborn
+
+# Utilities
+tqdm
+python-dotenv
+
+# Data download (scripts/download_wrds.py; needs a WRDS account)
+wrds
+
+# Tests
+pytest
+
+# Optional (notebook work): jupyter ipykernel
